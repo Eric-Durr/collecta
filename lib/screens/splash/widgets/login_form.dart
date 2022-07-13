@@ -1,3 +1,6 @@
+import 'package:collecta/screens/insights/inisghts_screen.dart';
+import 'package:collecta/screens/screen_drawer.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../../constants.dart';
@@ -51,11 +54,13 @@ class _LoginFormState extends State<LoginForm> {
           DefaultButton(
             text: 'Continue',
             onPressedFunction: () {
-              if (_formKey.currentState.validate()) {
-                // Go to complete profile page
-                _formKey.currentState.save();
-                // Go to main screen
-              }
+              Navigator.pushNamed(context, ScreenDrawer.routeName);
+              // When auth system is applied
+              // if (_formKey.currentState.validate()) {
+              //   // Go to complete profile page
+              //   _formKey.currentState.save();
+              //   // Go to main screen
+              // }
             },
           )
         ],
@@ -70,7 +75,7 @@ class _LoginFormState extends State<LoginForm> {
       onChanged: (value) {
         if (value.isNotEmpty) {
           removeError(error: kUserNullError);
-        } else if (emailValidatorRegExp.hasMatch(value)) {
+        } else if (true /*Substitute with user alidation call*/) {
           removeError(error: kInvalidUserError);
         }
         return null;
@@ -87,8 +92,7 @@ class _LoginFormState extends State<LoginForm> {
       },
       decoration: const InputDecoration(
           labelText: 'User',
-          hintText: 'Team_01',
-          floatingLabelBehavior: FloatingLabelBehavior.always,
+          helperText: 'Enter a team name',
           suffixIcon: CustomSuffixIcon(assetPath: 'assets/icons/User.svg')),
     );
   }
@@ -117,8 +121,7 @@ class _LoginFormState extends State<LoginForm> {
       },
       decoration: const InputDecoration(
           labelText: 'Password',
-          hintText: 'Enter your password',
-          floatingLabelBehavior: FloatingLabelBehavior.always,
+          helperText: 'Enter your password',
           suffixIcon: CustomSuffixIcon(assetPath: 'assets/icons/Lock.svg')),
     );
   }

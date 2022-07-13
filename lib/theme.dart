@@ -1,3 +1,4 @@
+import 'package:collecta/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -9,6 +10,9 @@ ThemeData theme() {
     fontFamily: 'Muli',
     appBarTheme: appBarTheme(),
     textTheme: textTheme(),
+    navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: lightColorScheme.surfaceVariant,
+        indicatorColor: lightColorScheme.onSurfaceVariant.withOpacity(0.4)),
     inputDecorationTheme: inputDecorationTheme(),
     visualDensity: VisualDensity.adaptivePlatformDensity,
   );
@@ -37,13 +41,13 @@ AppBarTheme appBarTheme() {
 
 InputDecorationTheme inputDecorationTheme() {
   var outlineInputBorder = OutlineInputBorder(
-    borderRadius: BorderRadius.circular(50),
-    borderSide: BorderSide(color: kTextColor),
+    borderRadius: BorderRadius.circular(10),
+    borderSide: BorderSide(color: lightColorScheme.secondary),
     gapPadding: 10,
   );
   return InputDecorationTheme(
-      contentPadding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
       enabledBorder: outlineInputBorder,
-      focusedBorder: outlineInputBorder,
+      focusColor: Colors.blue,
       border: outlineInputBorder);
 }
