@@ -5,13 +5,13 @@ import '../size_config.dart';
 
 class SocialMediaCard extends StatelessWidget {
   const SocialMediaCard({
-    Key key,
-    this.assetPath,
-    this.onPress,
+    Key? key,
+    required this.assetPath,
+    required this.onPress,
   }) : super(key: key);
 
   final String assetPath;
-  final Function onPress;
+  final void Function() onPress;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class SocialMediaCard extends StatelessWidget {
         padding: EdgeInsets.all(getProportionateScreenWidth(12)),
         height: getProportionateScreenHeight(40),
         width: getProportionateScreenWidth(40),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Color(0xFFF5F6F9),
           shape: BoxShape.circle,
         ),

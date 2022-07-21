@@ -5,13 +5,13 @@ import '../size_config.dart';
 
 class DefaultButton extends StatelessWidget {
   const DefaultButton({
-    Key key,
-    this.text,
+    Key? key,
+    required this.text,
     this.onPressedFunction,
   }) : super(key: key);
 
   final String text;
-  final Function onPressedFunction;
+  final void Function()? onPressedFunction;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,7 @@ class DefaultButton extends StatelessWidget {
                     states.contains(MaterialState.pressed)) {
                   return lightColorScheme.onPrimary.withOpacity(0.35);
                 }
-                return null; // Defer to the widget's default.
+                return Colors.white; // Defer to the widget's default.
               },
             ),
           ),

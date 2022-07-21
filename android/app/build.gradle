@@ -52,7 +52,9 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
 
-        manifestPlaceholders = [appAuthRedirectScheme: 'com.redirectScheme.comm']
+        manifestPlaceholders = [
+            'appAuthRedirectScheme': 'com.example.collecta'
+            ]
     }
 
     buildTypes {

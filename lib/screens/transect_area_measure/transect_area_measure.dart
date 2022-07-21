@@ -10,7 +10,7 @@ class TransectAreaScreen extends StatelessWidget {
     SizeConfig().init(context);
     return Scaffold(
         appBar: AppBar(
-          title: Text('Transec Area Screen'),
+          title: Text('Transect Area Screen'),
           automaticallyImplyLeading: false,
         ),
         body: Body());

@@ -5,8 +5,8 @@ import '../size_config.dart';
 
 class CustomSuffixIcon extends StatelessWidget {
   const CustomSuffixIcon({
-    Key key,
-    @required this.assetPath,
+    Key? key,
+    required this.assetPath,
   }) : super(key: key);
 
   final String assetPath;

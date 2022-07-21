@@ -1,6 +1,7 @@
 import 'package:collecta/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:skeleton_loader/skeleton_loader.dart';
 import '../../../size_config.dart';
 
 class Body extends StatefulWidget {
@@ -10,7 +11,8 @@ class Body extends StatefulWidget {
 
 class _BodyState extends State<Body> {
   final Geolocator geolocator = Geolocator();
-  Position _currentPosition;
+  late Position _currentPosition;
+  bool isBussy = false;
 
   @override
   void initState() {
@@ -18,15 +20,22 @@ class _BodyState extends State<Body> {
     _determinePosition();
   }
 
-  _determinePosition() {
+  _determinePosition() async {
+    setState(() {
+      isBussy = true;
+    });
     Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.best,
             forceAndroidLocationManager: true)
         .then((Position position) {
       setState(() {
+        isBussy = false;
         _currentPosition = position;
       });
     }).catchError((e) {
+      setState(() {
+        isBussy = false;
+      });
       print(e);
     });
   }
@@ -42,43 +51,57 @@ class _BodyState extends State<Body> {
           child: SingleChildScrollView(
             child: Column(children: [
               SizedBox(height: SizeConfig.screenHeight * 0.04),
-              SizedBox(
-                width: double.infinity,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      if (_currentPosition != null)
-                        Text(
-                          _currentPosition.toString(),
-                          style: TextStyle(
-                              fontSize: getProportionateScreenWidth(12),
-                              fontWeight: FontWeight.bold),
-                        )
-                      else
-                        Text(
-                          'Retry location load',
-                          style: TextStyle(
-                              fontSize: getProportionateScreenWidth(12),
-                              fontWeight: FontWeight.bold),
-                        ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 0, 0, 0),
-                        child: OutlinedButton(
-                          onPressed: () async {
-                            await _determinePosition();
-                          },
-                          child: const Icon(
-                            Icons.replay_outlined,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
+              if (isBussy)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(
+                    color: lightColorScheme.primaryContainer,
                   ),
                 ),
-              ),
+              if (!isBussy)
+                Card(
+                  elevation: 0,
+                  color: lightColorScheme.primaryContainer,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          if (_currentPosition != null)
+                            Text(
+                              _currentPosition.toString(),
+                              style: TextStyle(
+                                  color: lightColorScheme.onPrimaryContainer,
+                                  fontSize: getProportionateScreenWidth(12),
+                                  fontWeight: FontWeight.bold),
+                            )
+                          else
+                            Text(
+                              'Retry location load',
+                              style: TextStyle(
+                                  color: lightColorScheme.onPrimaryContainer,
+                                  fontSize: getProportionateScreenWidth(12),
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 0, 0, 0),
+                            child: OutlinedButton(
+                              onPressed: () async {
+                                await _determinePosition();
+                              },
+                              child: const Icon(
+                                Icons.replay_outlined,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               SizedBox(height: getProportionateScreenHeight(24)),
               FloatingActionButton(
                 backgroundColor: Colors.black,

@@ -93,3 +93,13 @@ const String kInvalidUserError = 'Please Enter an existing user';
 const String kPassNullError = 'Please Enter a password';
 const String kShortPassError = 'Password is too short';
 const String kMatchPassError = 'Passwords don\'t match';
+const String kAuthFailed = 'Authentication failed, wrong user or password ';
+
+// --- Auth0 variables ---
+const AUTH0_DOMAIN = 'collecta-auth-v01.eu.auth0.com';
+const AUTH0_CLIENT_ID = 'rnrOHIGHvKrLwNQT2j7i87ndvhdUmv2d';
+const AUTH0_REDIRECT_URI = 'com.example.collecta://login-callback';
+const AUTH0_ISSUER = 'https://$AUTH0_DOMAIN';
+const BUNDLE_IDENTIFIER = 'com.example.collecta';
+const REFRESH_TOKEN_KEY = 'refresh_token';
+// --- ---------------- ---

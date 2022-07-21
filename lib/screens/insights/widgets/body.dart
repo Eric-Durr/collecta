@@ -8,7 +8,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 class AnimatedMapControllerPage extends StatefulWidget {
   static const String route = 'map_controller_animated';
 
-  const AnimatedMapControllerPage({Key key}) : super(key: key);
+  const AnimatedMapControllerPage({Key? key}) : super(key: key);
 
   @override
   AnimatedMapControllerPageState createState() {
@@ -32,7 +32,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
   static LatLng paris = LatLng(48.8566, 2.3522);
   static LatLng dublin = LatLng(53.3498, -6.2603);
 
-  MapController mapController;
+  late MapController mapController;
 
   @override
   void initState() {
