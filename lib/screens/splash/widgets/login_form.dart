@@ -58,42 +58,6 @@ class _LoginFormState extends State<LoginForm> {
     }).catchError((err) {});
   }
 
-  // Auth0 code
-  // Future<Map<dynamic, dynamic>> login(String email, String password) async {
-  //   try {
-  //     setState(() {
-  //       isBussy = true;
-  //       errorMessage = '';
-  //     });
-
-  //     var url = Uri.parse(
-  //         'https://api.loginradius.com/identity/v2/auth/login?apiKey=9b8e3801-1092-4969-bc57-8a29308260c9');
-
-  //     var response = await http
-  //         .post(url, body: {'email': '$email', 'password': '$password'});
-  //     print('${response.statusCode}');
-
-  //     if (response.statusCode == 200) {
-  //       setState(() {
-  //         isBussy = false;
-  //         isLoggedIn = true;
-  //       });
-  //     } else {
-  //       setState(() {
-  //         isBussy = false;
-  //         isLoggedIn = false;
-  //       });
-  //     }
-  //     //returns the successful user data json object
-
-  //     var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
-  //     return decodedResponse;
-  //   } catch (e) {
-  //     //returns the error object if any
-  //     return {};
-  //   }
-  // }
-
   @override
   void initState() {
     // TODO: implement initState

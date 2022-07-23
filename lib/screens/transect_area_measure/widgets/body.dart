@@ -1,4 +1,5 @@
 import 'package:collecta/constants.dart';
+import 'package:collecta/widgets/form_error.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:skeleton_loader/skeleton_loader.dart';
@@ -13,6 +14,8 @@ class _BodyState extends State<Body> {
   final Geolocator geolocator = Geolocator();
   late Position _currentPosition;
   bool isBussy = false;
+  final List<String> errors = [];
+  bool locationFail = false;
 
   @override
   void initState() {
@@ -22,7 +25,7 @@ class _BodyState extends State<Body> {
 
   _determinePosition() async {
     setState(() {
-      isBussy = true;
+      isBussy = false;
     });
     Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.best,
@@ -33,10 +36,22 @@ class _BodyState extends State<Body> {
         _currentPosition = position;
       });
     }).catchError((e) {
+      print(e.toString());
+
       setState(() {
         isBussy = false;
+        locationFail = true;
       });
-      print(e);
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        dismissDirection: DismissDirection.down,
+        duration: const Duration(seconds: 20),
+        backgroundColor: lightColorScheme.errorContainer,
+        content: Text(
+          e.toString(),
+          style: TextStyle(color: lightColorScheme.onErrorContainer),
+        ),
+      ));
     });
   }
 
@@ -69,7 +84,8 @@ class _BodyState extends State<Body> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          if (_currentPosition != null)
+                          if (isBussy) CircularProgressIndicator(),
+                          if (!isBussy && !locationFail)
                             Text(
                               _currentPosition.toString(),
                               style: TextStyle(
@@ -85,6 +101,7 @@ class _BodyState extends State<Body> {
                                   fontSize: getProportionateScreenWidth(12),
                                   fontWeight: FontWeight.bold),
                             ),
+                          FormError(errors: errors),
                           Padding(
                             padding: const EdgeInsets.fromLTRB(12, 0, 0, 0),
                             child: OutlinedButton(
