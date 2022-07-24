@@ -39,10 +39,8 @@ dependencies:
   flutter_svg: ^1.1.1
   material_design_icons_flutter: ^5.0.6996
   flutter_map: ^2.0.0
-  skeleton_loader: ^2.0.0+4
 
   http: ^0.13.4
-  flutter_appauth: ^4.0.1
   flutter_secure_storage: ^5.0.2
   geolocator: ^9.0.1
   postgres: ^2.4.5
@@ -50,7 +48,10 @@ dependencies:
   # Packages for data persistance in offline mode
   sqflite: ^2.0.3
   path: ^1.8.1
+  path_provider: ^2.0.11
   intl: ^0.17.0
+  connectivity_plus: ^2.3.6
+  provider: ^6.0.3
 
 dev_dependencies:
   flutter_test:

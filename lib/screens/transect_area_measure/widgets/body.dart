@@ -1,9 +1,12 @@
-import 'package:collecta/constants.dart';
-import 'package:collecta/widgets/form_error.dart';
+import 'package:collecta/models/transect_point.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:skeleton_loader/skeleton_loader.dart';
+import '../../../constants.dart';
+import '../../../db/transect_point_database.dart';
 import '../../../size_config.dart';
+import '../../../widgets/form_error.dart';
+import '../../transect_point_measure/initial_form_screen.dart';
+import 'measure_list.dart';
 
 class Body extends StatefulWidget {
   @override
@@ -19,15 +22,15 @@ class _BodyState extends State<Body> {
 
   @override
   void initState() {
-    super.initState();
     _determinePosition();
+    super.initState();
   }
 
   _determinePosition() async {
     setState(() {
-      isBussy = false;
+      isBussy = true;
     });
-    Geolocator.getCurrentPosition(
+    await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.best,
             forceAndroidLocationManager: true)
         .then((Position position) {
@@ -36,8 +39,6 @@ class _BodyState extends State<Body> {
         _currentPosition = position;
       });
     }).catchError((e) {
-      print(e.toString());
-
       setState(() {
         isBussy = false;
         locationFail = true;
@@ -103,7 +104,7 @@ class _BodyState extends State<Body> {
                             ),
                           FormError(errors: errors),
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(12, 0, 0, 0),
+                            padding: const EdgeInsets.fromLTRB(6, 0, 0, 0),
                             child: OutlinedButton(
                               onPressed: () async {
                                 await _determinePosition();
@@ -128,41 +129,27 @@ class _BodyState extends State<Body> {
                   Icons.add,
                   size: 30,
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  TransectPointDatabase.instance.create(TransectPoint(
+                      species: 'Rumex Lunaria',
+                      soil: false,
+                      mulch: false,
+                      rock: false,
+                      stone: false,
+                      annotations: '',
+                      created: DateTime.now(),
+                      mark: DateTime.now(),
+                      hits: 3,
+                      areaId: 150,
+                      teamId: 5));
+                  // Navigator.pushNamed(
+                  //     context, TransectFormInitialScreen.routeName);
+                },
               ),
               SizedBox(height: getProportionateScreenHeight(10)),
               const Text('Add area measure'),
               SizedBox(height: getProportionateScreenHeight(40)),
-              Row(
-                children: <Widget>[
-                  Text(
-                    'TEAM MEASURE HISTORY',
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontSize: getProportionateScreenWidth(15),
-                        fontWeight: FontWeight.bold),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: getProportionateScreenWidth(10)),
-                    child: Container(
-                      width: getProportionateScreenWidth(100),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(width: 3, color: Colors.black),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '0/100',
-                    style: TextStyle(
-                        color: lightColorScheme.error,
-                        fontSize: getProportionateScreenWidth(15),
-                        fontWeight: FontWeight.bold),
-                  ),
-                ],
-              )
+              MeasureList(),
             ]),
           ),
         ),

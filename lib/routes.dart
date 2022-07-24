@@ -2,6 +2,7 @@ import 'package:collecta/screens/insights/inisghts_screen.dart';
 import 'package:collecta/screens/screen_drawer.dart';
 import 'package:collecta/screens/team_profile/team_profile.dart';
 import 'package:collecta/screens/transect_area_measure/transect_area_measure.dart';
+import 'package:collecta/screens/transect_point_measure/initial_form_screen.dart';
 import 'package:flutter/widgets.dart';
 import 'package:collecta/screens/splash/splash_screen.dart';
 
@@ -11,4 +12,6 @@ final Map<String, WidgetBuilder> routes = {
   InsightsScreen.routeName: (context) => InsightsScreen(),
   TransectAreaScreen.routeName: (context) => TransectAreaScreen(),
   TeamProfileScreen.routeName: (context) => TeamProfileScreen(),
+  TransectFormInitialScreen.routeName: ((context) =>
+      TransectFormInitialScreen())
 };

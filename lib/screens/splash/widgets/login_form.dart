@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:postgres/postgres.dart';
 
@@ -14,7 +13,6 @@ import '../../../widgets/deffault_button.dart';
 import '../../../widgets/form_error.dart';
 import '../../screen_drawer.dart';
 
-final FlutterAppAuth appAuth = FlutterAppAuth();
 final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
 class LoginForm extends StatefulWidget {
@@ -99,6 +97,8 @@ class _LoginFormState extends State<LoginForm> {
                 setState(() {
                   isBussy = true;
                 });
+
+                // Pass this values in environment variables on flutter launch
                 databaseConnection = await PostgreSQLConnection(
                     '10.6.129.74', 5432, 'ECOSISTEMAS_ERIC',
                     queryTimeoutInSeconds: 3600,
