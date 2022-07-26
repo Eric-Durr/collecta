@@ -86,16 +86,7 @@ class _MeasureListState extends State<MeasureList> {
             ? CircularProgressIndicator()
             : measures.isEmpty
                 ? Text('No Transect measures yet')
-                : ListView.builder(
-                    itemCount: null == measures ? 0 : measures.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(measures[index].id.toString()),
-                        subtitle: Text(measures[index].id.toString()),
-                        leading: CircleAvatar(
-                            child: Text(measures[index].id.toString())),
-                      );
-                    }),
+                : Text('Measures detected'),
       ],
     );
   }

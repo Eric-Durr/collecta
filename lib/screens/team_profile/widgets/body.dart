@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:collecta/screens/splash/splash_screen.dart';
 import 'package:collecta/screens/team_profile/widgets/user_banner.dart';
 import 'package:flutter/material.dart';
@@ -57,6 +59,7 @@ class _BodyState extends State<Body> {
             child: Column(children: [
               SizedBox(height: SizeConfig.screenHeight * 0.04),
               userBanner(),
+              SizedBox(height: SizeConfig.screenHeight * 0.04),
               SizedBox(height: SizeConfig.screenHeight * 0.04),
               DefaultButton(
                   text: 'Log out',

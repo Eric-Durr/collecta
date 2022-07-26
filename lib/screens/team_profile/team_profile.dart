@@ -5,7 +5,7 @@ import 'package:collecta/size_config.dart';
 class TeamProfileScreen extends StatelessWidget {
   static String routeName = '/team-profile';
 
-  const TeamProfileScreen({Key? key}) : super(key: key);
+  const TeamProfileScreen({Key? key, conectivity}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

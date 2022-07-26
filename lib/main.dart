@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:collecta/routes.dart';
 import 'package:collecta/screens/splash/splash_screen.dart';
