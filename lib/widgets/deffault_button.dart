@@ -4,12 +4,18 @@ import '../constants.dart';
 import '../size_config.dart';
 
 class DefaultButton extends StatelessWidget {
+  static const defaultValue = Color(0xFFEEDBFF);
+  static const defaultTextValue = Color(0xFF25123B);
   const DefaultButton({
     Key? key,
     required this.text,
     this.onPressedFunction,
+    this.buttonColor = defaultValue,
+    this.textColor = defaultTextValue,
   }) : super(key: key);
 
+  final Color buttonColor;
+  final Color textColor;
   final String text;
   final void Function()? onPressedFunction;
 
@@ -23,15 +29,14 @@ class DefaultButton extends StatelessWidget {
             shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                 RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15))),
-            backgroundColor: MaterialStateProperty.all<Color>(
-                lightColorScheme.primaryContainer),
+            backgroundColor: MaterialStateProperty.all<Color>(buttonColor),
             foregroundColor: MaterialStateProperty.all<Color>(
                 lightColorScheme.onPrimaryContainer),
             overlayColor: MaterialStateProperty.resolveWith<Color>(
               (Set<MaterialState> states) {
                 if (states.contains(MaterialState.focused) ||
                     states.contains(MaterialState.pressed)) {
-                  return lightColorScheme.onPrimary.withOpacity(0.35);
+                  return buttonColor;
                 }
                 return Colors.white; // Defer to the widget's default.
               },
@@ -40,7 +45,10 @@ class DefaultButton extends StatelessWidget {
           onPressed: onPressedFunction,
           child: Text(
             text,
-            style: TextStyle(fontSize: getProportionateScreenWidth(18)),
+            style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: getProportionateScreenWidth(18),
+                color: textColor),
           )),
     );
   }

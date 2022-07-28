@@ -35,6 +35,8 @@ const lightColorScheme = ColorScheme(
   surfaceTint: Color(0xFF6A5583),
 );
 
+const successContainer = Color.fromARGB(255, 121, 237, 223);
+
 const darkColorScheme = ColorScheme(
   brightness: Brightness.dark,
   primary: Color(0xFFD6BCF1),

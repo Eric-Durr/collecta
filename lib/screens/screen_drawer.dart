@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:collecta/screens/insights/inisghts_screen.dart';
@@ -7,6 +8,7 @@ import 'package:collecta/screens/transect_area_measure/transect_area_measure.dar
 import 'package:collecta/services/network_conectivity.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class ScreenDrawer extends StatefulWidget {
@@ -19,48 +21,22 @@ class ScreenDrawer extends StatefulWidget {
 
 class _ScreenDrawerState extends State<ScreenDrawer> {
   int currentPageIndex = 0;
-  Map _source = {ConnectivityResult.none: false};
-  final NetworkConnectivity _networkConnectivity = NetworkConnectivity.instance;
-  String string = '';
+  bool isOnline = false;
 
   @override
   void initState() {
     super.initState();
-    _networkConnectivity.initialise();
-    _networkConnectivity.myStream.listen((source) {
-      _source = source;
-      print('source $_source');
-      // 1.
-      switch (_source.keys.toList()[0]) {
-        case ConnectivityResult.mobile:
-          string =
-              _source.values.toList()[0] ? 'Mobile: Online' : 'Mobile: Offline';
-          break;
-        case ConnectivityResult.wifi:
-          string =
-              _source.values.toList()[0] ? 'WiFi: Online' : 'WiFi: Offline';
-          break;
-        case ConnectivityResult.none:
-        default:
-          string = 'Offline';
-      }
-      // 2.
-      setState(() {});
-      // 3.
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            string,
-            style: TextStyle(fontSize: 30),
-          ),
-        ),
-      );
+
+    print(this.isOnline);
+    InternetConnectionChecker().onStatusChange.listen((status) {
+      final isOnline = status == InternetConnectionStatus.connected;
+      setState(() => this.isOnline = isOnline);
+      print(isOnline);
     });
   }
 
   @override
   void dispose() {
-    _networkConnectivity.disposeStream();
     super.dispose();
   }
 
@@ -94,7 +70,7 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
       ),
       body: <Widget>[
         InsightsScreen(),
-        TransectAreaScreen(),
+        TransectAreaScreen(hasInternet: this.isOnline),
         TeamProfileScreen(),
       ][currentPageIndex],
     );
