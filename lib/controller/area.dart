@@ -10,13 +10,16 @@ Future<List<MeasureArea>> getZoneAreas(double lat, lon) async {
   int zone = lonLatToUTMZone(lon, lat);
   var response = await http
       .get(Uri.parse('$API_SERVER:$API_PORT/api/areas/in-zone?zone=28'));
-  String jsonDataString = response.body.toString();
-  jsonResponse = await jsonDecode(jsonDataString);
+  jsonResponse = await json.decode(response.body);
 
   if (jsonResponse['areas'] != null) {
-    print(jsonResponse.toString());
     List<MeasureArea> areas = [];
-    return jsonResponse['areas'].forEach((area) => print(area.toString()));
+
+    print(jsonResponse['areas'][0].toString());
+    jsonResponse['areas'].forEach((area) {
+      areas.add(MeasureArea.fromJSON(area));
+    });
+    return areas;
   } else {
     return [];
   }

@@ -188,6 +188,7 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
             body: <Widget>[
               InsightsScreen(
                 location: _currentPosition,
+                // areas: areas
               ),
               TransectAreaScreen(
                 isOnline: isOnline,
@@ -261,7 +262,6 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
   }
 
   getAndParseAreas() async {
-    late List<MeasureArea> areas;
     await getZoneAreas(_currentPosition.latitude, _currentPosition.longitude)
         .then((value) => areas = value);
   }

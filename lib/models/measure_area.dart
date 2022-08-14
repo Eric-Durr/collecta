@@ -62,7 +62,9 @@ class MeasureArea {
         id: json[MeasureAreaFields.id] as int?,
         lat: json[MeasureAreaFields.lat] as String,
         lon: json[MeasureAreaFields.lon] as String,
-        annotations: json[MeasureAreaFields.annotations] as String,
+        annotations: json[MeasureAreaFields.annotations] == null
+            ? ''
+            : json[MeasureAreaFields.annotations] as String,
         uTMZone: json[MeasureAreaFields.uTMZone] as String,
         geographicSystem: json[MeasureAreaFields.geographicSystem] as String,
         projectId: json[MeasureAreaFields.projectId] as int,
