@@ -9,9 +9,6 @@ import 'package:collecta/screens/splash/splash_screen.dart';
 final Map<String, WidgetBuilder> routes = {
   SplashScreen.routeName: (context) => SplashScreen(),
   ScreenDrawer.routeName: (context) => ScreenDrawer(),
-  InsightsScreen.routeName: (context) => InsightsScreen(),
-  TransectAreaScreen.routeName: (context) => TransectAreaScreen(),
-  TeamProfileScreen.routeName: (context) => TeamProfileScreen(),
   TransectFormInitialScreen.routeName: ((context) =>
       TransectFormInitialScreen())
 };

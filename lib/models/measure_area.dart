@@ -1,13 +1,13 @@
 const String tableMeasureArea = 'MEASURE_AREA';
 
 class MeasureAreaFields {
-  static const String id = '_id';
-  static const String lat = 'latitude';
-  static const String lon = 'longitude';
-  static const String annotations = 'annotations';
-  static const String uTMZone = 'UTM_zone';
-  static const String geographicSystem = 'geographic_system';
-  static const String projectId = 'project_id';
+  static const String id = 'id_area';
+  static const String lat = 'Y';
+  static const String lon = 'X';
+  static const String annotations = 'observaciones';
+  static const String uTMZone = 'zona_UTM';
+  static const String geographicSystem = 'sistema geográfico';
+  static const String projectId = 'proyecto';
 
   static final List<String> values = [
     id,

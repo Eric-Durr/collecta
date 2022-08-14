@@ -9,71 +9,168 @@ import '../../transect_point_measure/initial_form_screen.dart';
 import 'measure_list.dart';
 
 class Body extends StatefulWidget {
+  const Body({Key? key, required this.currentPosition, this.isOnline = false})
+      : super(key: key);
+
+  final Position currentPosition;
+  final bool isOnline;
+
   @override
   State<Body> createState() => _BodyState();
 }
 
 class _BodyState extends State<Body> {
+  // status handlers
+  bool isBussy = false;
+  bool locationFail = false;
+  final List<String> errors = [];
+
+  // Geolocation
   final Geolocator geolocator = Geolocator();
   late Position _currentPosition;
-  bool isBussy = false;
-  final List<String> errors = [];
-  bool locationFail = false;
+
+  // Tool variables
   List<TransectPoint> measures = [];
+
   @override
   void initState() {
     super.initState();
-    _determinePosition();
+
+    infoSetup();
+
     // Mocked connection check
   }
 
-  Future initLocalDB() async {
+  void infoSetup() async {
     setState(() {
       isBussy = true;
     });
-
-    measures = await TransectPointDatabase.instance.readAll();
-
-    measures[1] = measures[1].copy(species: '', mulch: true, hits: 1);
-    measures[2] = measures[2].copy(species: '', soil: true, hits: 1);
-    measures[3] = measures[3].copy(species: '', stone: true, hits: 1);
-    measures[4] = measures[4].copy(species: '', rock: true, hits: 1);
+    _currentPosition = widget.currentPosition;
+    if (widget.isOnline) {
+      // onlineDB if user is connected
+    } else {
+      await initLocalDB();
+    }
 
     setState(() {
       isBussy = false;
     });
   }
 
+  Future initLocalDB() async {
+    measures = await TransectPointDatabase.instance.readAll();
+
+    if (measures.isEmpty) {
+      measures.insert(
+          0,
+          TransectPoint(
+              species: 'Rumex Lunaria',
+              soil: false,
+              mulch: false,
+              rock: false,
+              stone: false,
+              annotations: '',
+              created: DateTime.now(),
+              mark: DateTime.now(),
+              hits: 3,
+              areaId: 0,
+              teamId: 0));
+      measures.insert(
+          1,
+          TransectPoint(
+              species: 'Rumex Lunaria',
+              soil: false,
+              mulch: false,
+              rock: false,
+              stone: false,
+              annotations: '',
+              created: DateTime.now(),
+              mark: DateTime.now(),
+              hits: 3,
+              areaId: 0,
+              teamId: 0));
+
+      measures.insert(
+          2,
+          TransectPoint(
+              species: 'Rumex Lunaria',
+              soil: false,
+              mulch: false,
+              rock: false,
+              stone: false,
+              annotations: '',
+              created: DateTime.now(),
+              mark: DateTime.now(),
+              hits: 3,
+              areaId: 0,
+              teamId: 0));
+      measures.insert(
+          3,
+          TransectPoint(
+              species: 'Rumex Lunaria',
+              soil: false,
+              mulch: false,
+              rock: false,
+              stone: false,
+              annotations: '',
+              created: DateTime.now(),
+              mark: DateTime.now(),
+              hits: 3,
+              areaId: 0,
+              teamId: 0));
+
+      measures.insert(
+          4,
+          TransectPoint(
+              species: 'Rumex Lunaria',
+              soil: false,
+              mulch: false,
+              rock: false,
+              stone: false,
+              annotations: '',
+              created: DateTime.now(),
+              mark: DateTime.now(),
+              hits: 3,
+              areaId: 0,
+              teamId: 0));
+    }
+    measures[1] = measures[0].copy(species: '', mulch: true, hits: 1);
+    measures[2] = measures[0].copy(species: '', soil: true, hits: 1);
+    measures[3] = measures[0].copy(species: '', stone: true, hits: 1);
+    measures[4] = measures[0].copy(species: '', rock: true, hits: 1);
+  }
+
   _determinePosition() async {
-    setState(() {
-      isBussy = true;
-    });
-    await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.best,
-            forceAndroidLocationManager: true)
-        .then((Position position) {
-      setState(() {
-        isBussy = false;
-        _currentPosition = position;
+    LocationPermission permission;
+    permission = await Geolocator.requestPermission();
+    if (permission != LocationPermission.denied) {
+      await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.best,
+              forceAndroidLocationManager: true)
+          .then((Position position) {
+        setState(() {
+          _currentPosition = position;
+        });
+      }).catchError((e) {
+        setState(() {
+          locationFail = true;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          dismissDirection: DismissDirection.down,
+          duration: const Duration(seconds: 20),
+          backgroundColor: lightColorScheme.errorContainer,
+          content: Text(
+            e.toString(),
+            style: TextStyle(color: lightColorScheme.onErrorContainer),
+          ),
+        ));
       });
-    }).catchError((e) {
+    } else {
       setState(() {
-        isBussy = false;
         locationFail = true;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        dismissDirection: DismissDirection.down,
-        duration: const Duration(seconds: 20),
-        backgroundColor: lightColorScheme.errorContainer,
-        content: Text(
-          e.toString(),
-          style: TextStyle(color: lightColorScheme.onErrorContainer),
-        ),
-      ));
-    });
-
-    initLocalDB();
+    }
   }
 
   @override

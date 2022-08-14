@@ -2,13 +2,17 @@ import 'package:collecta/constants.dart';
 import 'package:collecta/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class AnimatedMapControllerPage extends StatefulWidget {
   static const String route = 'map_controller_animated';
 
-  const AnimatedMapControllerPage({Key? key}) : super(key: key);
+  const AnimatedMapControllerPage({Key? key, required this.location})
+      : super(key: key);
+
+  final Position location;
 
   @override
   AnimatedMapControllerPageState createState() {
@@ -128,8 +132,11 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
             child: FlutterMap(
               mapController: mapController,
               options: MapOptions(
-                  center: LatLng(51.5, -0.09),
-                  zoom: 5.0,
+                  center: LatLng(
+                    widget.location.latitude,
+                    widget.location.longitude,
+                  ),
+                  zoom: 10.0,
                   maxZoom: 10.0,
                   minZoom: 3.0),
               layers: [

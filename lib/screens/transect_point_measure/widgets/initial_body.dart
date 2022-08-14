@@ -30,6 +30,7 @@ class InitialBody extends StatefulWidget {
 class _InitialBodyState extends State<InitialBody> {
   Duration duration = Duration();
   String formStage = 'init';
+  String speciesName = '';
   TransectPointTypes measureType = TransectPointTypes.species;
   int hits = 0;
   final TextEditingController hitsController = new TextEditingController();
@@ -68,6 +69,7 @@ class _InitialBodyState extends State<InitialBody> {
                   fontSize: getProportionateScreenWidth(18),
                   fontWeight: FontWeight.bold),
             ),
+            Text(formStage),
             pageHeader(),
             SizedBox(height: getProportionateScreenHeight(20)),
             ProgressHeader(
@@ -99,6 +101,10 @@ class _InitialBodyState extends State<InitialBody> {
                                 setState(() {
                                   measureType = value!;
                                   enableField = true;
+                                  hits = 0;
+                                  if (hits.toString() == '0') {
+                                    formStage = 'hits';
+                                  }
                                 });
                               },
                             ),
@@ -118,6 +124,7 @@ class _InitialBodyState extends State<InitialBody> {
                               onChanged: (TransectPointTypes? value) {
                                 setState(() {
                                   measureType = value!;
+                                  hits = 1;
                                   hitsController.text = '1';
                                   enableField = false;
                                   formStage = 'hitsAndType';
@@ -137,7 +144,13 @@ class _InitialBodyState extends State<InitialBody> {
                               groupValue: measureType,
                               onChanged: (TransectPointTypes? value) {
                                 setState(() {
-                                  measureType = value!;
+                                  setState(() {
+                                    measureType = value!;
+                                    hits = 1;
+                                    hitsController.text = '1';
+                                    enableField = false;
+                                    formStage = 'hitsAndType';
+                                  });
                                 });
                               },
                             ),
@@ -160,7 +173,13 @@ class _InitialBodyState extends State<InitialBody> {
                               groupValue: measureType,
                               onChanged: (TransectPointTypes? value) {
                                 setState(() {
-                                  measureType = value!;
+                                  setState(() {
+                                    measureType = value!;
+                                    hits = 1;
+                                    hitsController.text = '1';
+                                    enableField = false;
+                                    formStage = 'hitsAndType';
+                                  });
                                 });
                               },
                             ),
@@ -177,7 +196,13 @@ class _InitialBodyState extends State<InitialBody> {
                               groupValue: measureType,
                               onChanged: (TransectPointTypes? value) {
                                 setState(() {
-                                  measureType = value!;
+                                  setState(() {
+                                    measureType = value!;
+                                    hits = 1;
+                                    hitsController.text = '1';
+                                    enableField = false;
+                                    formStage = 'hitsAndType';
+                                  });
                                 });
                               },
                             ),
@@ -192,9 +217,10 @@ class _InitialBodyState extends State<InitialBody> {
             else
               SizedBox(height: getProportionateScreenHeight(200)),
             if (formStage == 'speciesSelect')
-              buildHitsField()
+              buildSpeciesSelect()
             else
-              SizedBox(height: getProportionateScreenHeight(200)),
+              SizedBox(height: getProportionateScreenHeight(100)),
+            SizedBox(height: getProportionateScreenHeight(100)),
             if (formStage == 'init')
               DefaultButton(
                 text: 'START',
@@ -232,11 +258,30 @@ class _InitialBodyState extends State<InitialBody> {
         enabled: enableField,
         initialValue: hits.toString(),
         onChanged: (value) {
-          hits = int.parse(value);
+          hits = value != '' ? int.parse(value) : 0;
+          if (value == '0' || value == '') {
+            setState(() {
+              formStage = 'hits';
+            });
+          }
         },
         decoration: const InputDecoration(
           labelText: 'Hits',
           helperText: 'Enter number of hits',
+        ));
+  }
+
+  TextFormField buildSpeciesSelect() {
+    return TextFormField(
+        keyboardType: TextInputType.text,
+        enabled: enableField,
+        initialValue: speciesName,
+        onChanged: (value) {
+          speciesName = value;
+        },
+        decoration: const InputDecoration(
+          labelText: 'Species list',
+          helperText: 'Enter the name of species',
         ));
   }
 
@@ -260,6 +305,13 @@ class _InitialBodyState extends State<InitialBody> {
                   if (formStage == 'hits' || formStage == 'type') {
                     formStage = 'init';
                     stopTimer();
+                  }
+
+                  if (formStage == 'histAndType') {
+                    formStage = 'init';
+                  }
+                  if (formStage == 'speciesSelect') {
+                    formStage = 'hitsAndType';
                   }
                 });
               },
@@ -303,10 +355,7 @@ class _InitialBodyState extends State<InitialBody> {
           radius: getProportionateScreenWidth(30),
           backgroundColor: lightColorScheme.secondaryContainer,
           child: Text(
-            databaseConnection.username
-                .toString()
-                .substring(0, 2)
-                .toUpperCase(),
+            'username'.toString().substring(0, 2).toUpperCase(),
             style: TextStyle(
                 fontSize: getProportionateScreenWidth(22),
                 fontWeight: FontWeight.w600,
@@ -317,7 +366,7 @@ class _InitialBodyState extends State<InitialBody> {
           width: getProportionateScreenWidth(10),
         ),
         Text(
-          '${databaseConnection.username!.split('_').join(' ').toUpperCase()}',
+          '${'username'.split('_').join(' ').toUpperCase()}',
           style: TextStyle(
               fontSize: getProportionateScreenWidth(14),
               fontWeight: FontWeight.bold),

@@ -98,5 +98,8 @@ const String kMatchPassError = 'Passwords don\'t match';
 const String kAuthFailed = 'Authentication failed, wrong user or password ';
 
 // --- Auth0 variables ---
+String API_SERVER = 'http://10.6.129.173';
+String API_PORT = '8080';
+String API_CLIENT_URL = '$API_SERVER:$API_PORT/api/';
 
 // --- ---------------- ---

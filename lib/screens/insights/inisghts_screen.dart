@@ -3,10 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:collecta/screens/insights/widgets/body.dart';
 import 'package:collecta/size_config.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class InsightsScreen extends StatelessWidget {
   static String routeName = '/insights';
+
+  InsightsScreen({Key? key, required this.location}) : super(key: key);
+
+  final Position location;
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +21,6 @@ class InsightsScreen extends StatelessWidget {
           title: Text('Insights Screen'),
           automaticallyImplyLeading: false,
         ),
-        body: AnimatedMapControllerPage());
+        body: AnimatedMapControllerPage(location: location));
   }
 }

@@ -4,7 +4,7 @@ import '../../../constants.dart';
 import '../../../main.dart';
 import '../../../size_config.dart';
 
-Row userBanner() {
+Row userBanner(String? username) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.center,
     children: [
@@ -18,10 +18,7 @@ Row userBanner() {
               radius: getProportionateScreenWidth(40),
               backgroundColor: lightColorScheme.secondaryContainer,
               child: Text(
-                databaseConnection.username
-                    .toString()
-                    .substring(0, 1)
-                    .toUpperCase(),
+                username.toString().substring(0, 1).toUpperCase(),
                 style: TextStyle(
                     fontSize: getProportionateScreenWidth(22),
                     fontWeight: FontWeight.w600,
@@ -35,7 +32,7 @@ Row userBanner() {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            databaseConnection.username.toString(),
+            username.toString(),
             style: TextStyle(
                 fontSize: getProportionateScreenWidth(18),
                 fontWeight: FontWeight.bold),
