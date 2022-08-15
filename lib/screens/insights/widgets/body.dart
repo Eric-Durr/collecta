@@ -1,4 +1,5 @@
 import 'package:collecta/constants.dart';
+import 'package:collecta/models/measure_area.dart';
 import 'package:collecta/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -9,10 +10,12 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 class AnimatedMapControllerPage extends StatefulWidget {
   static const String route = 'map_controller_animated';
 
-  const AnimatedMapControllerPage({Key? key, required this.location})
+  const AnimatedMapControllerPage(
+      {Key? key, required this.location, required this.zoneAreas})
       : super(key: key);
 
   final Position location;
+  final List<MeasureArea> zoneAreas;
 
   @override
   AnimatedMapControllerPageState createState() {
@@ -31,10 +34,6 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
   //      enableSuperMixins: true
   // See https://github.com/flutter/flutter/issues/14317#issuecomment-361085869
   // This project didn't require that change, so YMMV.
-
-  static LatLng london = LatLng(51.5, -0.09);
-  static LatLng paris = LatLng(48.8566, 2.3522);
-  static LatLng dublin = LatLng(53.3498, -6.2603);
 
   late MapController mapController;
 
@@ -80,47 +79,25 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
 
   @override
   Widget build(BuildContext context) {
-    var markers = <Marker>[
-      Marker(
+    List<Marker> markers = [];
+    widget.zoneAreas.forEach((area) {
+      markers.add(Marker(
         width: 80.0,
         height: 80.0,
-        point: london,
+        point: LatLng(
+          double.parse(area.lat),
+          double.parse(area.lon),
+        ),
         builder: (ctx) => Container(
           key: const Key('blue'),
           child: Icon(
-            MdiIcons.pin,
-            color: Colors.purple,
-            size: getProportionateScreenWidth(40),
+            MdiIcons.circle,
+            color: Colors.blue,
+            size: getProportionateScreenWidth(15),
           ),
         ),
-      ),
-      Marker(
-        width: 80.0,
-        height: 80.0,
-        point: dublin,
-        builder: (ctx) => Container(
-          key: const Key('blue'),
-          child: Icon(
-            MdiIcons.pin,
-            color: Colors.purple,
-            size: getProportionateScreenWidth(40),
-          ),
-        ),
-      ),
-      Marker(
-        width: 80.0,
-        height: 80.0,
-        point: paris,
-        builder: (ctx) => Container(
-          key: const Key('purple'),
-          child: Icon(
-            MdiIcons.pin,
-            color: Colors.purple,
-            size: getProportionateScreenWidth(40),
-          ),
-        ),
-      ),
-    ];
+      ));
+    });
 
     return SafeArea(
       child: Column(
@@ -136,8 +113,8 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                     widget.location.latitude,
                     widget.location.longitude,
                   ),
-                  zoom: 10.0,
-                  maxZoom: 10.0,
+                  zoom: 13.0,
+                  maxZoom: 13.0,
                   minZoom: 3.0),
               layers: [
                 TileLayerOptions(

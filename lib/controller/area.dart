@@ -5,7 +5,8 @@ import 'package:collecta/helpers/utm_zone_convert.dart';
 import 'package:collecta/models/measure_area.dart';
 import 'package:http/http.dart' as http;
 
-Future<List<MeasureArea>> getZoneAreas(double lat, lon) async {
+Future<List<MeasureArea>> getZoneAreas(
+    double lat, lon, String? projectId) async {
   var jsonResponse = null;
   int zone = lonLatToUTMZone(lon, lat);
   var response = await http
@@ -15,9 +16,9 @@ Future<List<MeasureArea>> getZoneAreas(double lat, lon) async {
   if (jsonResponse['areas'] != null) {
     List<MeasureArea> areas = [];
 
-    print(jsonResponse['areas'][0].toString());
     jsonResponse['areas'].forEach((area) {
-      areas.add(MeasureArea.fromJSON(area));
+      if (area['proyecto'].toString() == projectId)
+        areas.add(MeasureArea.fromJSON(area));
     });
     return areas;
   } else {

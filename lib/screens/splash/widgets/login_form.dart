@@ -134,7 +134,7 @@ class _LoginFormState extends State<LoginForm> {
       onChanged: (value) {
         if (value.isNotEmpty) {
           removeError(error: kPassNullError);
-        } else if (value.length >= 8) {
+        } else if (value.length >= 1) {
           removeError(error: kShortPassError);
         }
         password = value;
@@ -143,7 +143,7 @@ class _LoginFormState extends State<LoginForm> {
         if (value!.isEmpty) {
           addError(error: kPassNullError);
           return '';
-        } else if (value.length < 8) {
+        } else if (value.length < 1) {
           addError(error: kShortPassError);
           return '';
         }

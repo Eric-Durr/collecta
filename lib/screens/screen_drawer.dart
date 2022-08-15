@@ -122,8 +122,7 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
   @override
   Widget build(BuildContext context) {
     return isBussy
-        ? SafeArea(
-            child: Scaffold(
+        ? Scaffold(
             body: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.max,
@@ -145,7 +144,7 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
                 ),
               ],
             ),
-          ))
+          )
         : Scaffold(
             appBar: AppBar(
               title: Text(
@@ -186,10 +185,7 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
               ],
             ),
             body: <Widget>[
-              InsightsScreen(
-                location: _currentPosition,
-                // areas: areas
-              ),
+              InsightsScreen(location: _currentPosition, zoneAreas: areas),
               TransectAreaScreen(
                 isOnline: isOnline,
                 currentPosition: _currentPosition,
@@ -262,7 +258,8 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
   }
 
   getAndParseAreas() async {
-    await getZoneAreas(_currentPosition.latitude, _currentPosition.longitude)
+    await getZoneAreas(_currentPosition.latitude, _currentPosition.longitude,
+            sharedPreferences.getString('projectId'))
         .then((value) => areas = value);
   }
 }

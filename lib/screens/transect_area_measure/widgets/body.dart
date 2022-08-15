@@ -204,7 +204,7 @@ class _BodyState extends State<Body> {
                         if (isBussy) CircularProgressIndicator(),
                         if (!isBussy && !locationFail)
                           Text(
-                            _currentPosition.toString(),
+                            'Latitude: ${_currentPosition.latitude.toStringAsPrecision(8)}, Longitude: ${_currentPosition.longitude.toStringAsPrecision(8)}',
                             style: TextStyle(
                                 color: lightColorScheme.onPrimaryContainer,
                                 fontSize: getProportionateScreenWidth(12),

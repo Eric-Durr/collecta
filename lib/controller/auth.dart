@@ -20,6 +20,17 @@ signIn(String username, password) async {
     if (jsonResponse['accessToken'] != null) {
       await sharedPreferences.setString('token', jsonResponse['accessToken']);
       await sharedPreferences.setString('username', jsonResponse['username']);
+      await sharedPreferences.setString(
+          'teamId', jsonResponse['team_id'].toString());
+      var teamResponse = await http.get(Uri.parse(
+          '$API_SERVER:$API_PORT/api/teams/${jsonResponse['team_id']}'));
+      var parsedTeamResponse = null;
+      if (teamResponse.statusCode == 200) {
+        parsedTeamResponse = json.decode(teamResponse.body);
+        await sharedPreferences.setString(
+            'projectId', parsedTeamResponse['id_proyecto'].toString());
+      }
+
       return true;
     } else {
       return false;
