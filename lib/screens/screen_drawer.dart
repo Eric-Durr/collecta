@@ -50,7 +50,6 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
   @override
   void initState() {
     statusSetup();
-
     // Connectivity subscription
     connection = Connectivity()
         .onConnectivityChanged
@@ -187,8 +186,10 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
             body: <Widget>[
               InsightsScreen(location: _currentPosition, zoneAreas: areas),
               TransectAreaScreen(
+                zoneAreas: areas,
                 isOnline: isOnline,
                 currentPosition: _currentPosition,
+                updatePositionCallback: updatePositionCallback,
               ),
               TeamProfileScreen(
                 username: sharedPreferences.getString('username'),
@@ -261,5 +262,12 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
     await getZoneAreas(_currentPosition.latitude, _currentPosition.longitude,
             sharedPreferences.getString('projectId'))
         .then((value) => areas = value);
+    print(areas.length.toString());
+  }
+
+  updatePositionCallback(newPosition) {
+    setState(() {
+      _currentPosition = newPosition;
+    });
   }
 }

@@ -80,6 +80,22 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
   @override
   Widget build(BuildContext context) {
     List<Marker> markers = [];
+    markers.add(Marker(
+      width: 80.0,
+      height: 80.0,
+      point: LatLng(
+        widget.location.latitude,
+        widget.location.longitude,
+      ),
+      builder: (ctx) => Container(
+        key: const Key('blue'),
+        child: Icon(
+          MdiIcons.pin,
+          color: Colors.red,
+          size: getProportionateScreenWidth(25),
+        ),
+      ),
+    ));
     widget.zoneAreas.forEach((area) {
       markers.add(Marker(
         width: 80.0,
@@ -90,10 +106,19 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
         ),
         builder: (ctx) => Container(
           key: const Key('blue'),
-          child: Icon(
-            MdiIcons.circle,
-            color: Colors.blue,
-            size: getProportionateScreenWidth(15),
+          child: Column(
+            children: [
+              Icon(
+                MdiIcons.circle,
+                color: Colors.blue,
+                size: getProportionateScreenWidth(15),
+              ),
+              Text(
+                'Area: ${area.id}',
+                style:
+                    TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              )
+            ],
           ),
         ),
       ));
@@ -106,25 +131,28 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
             height: SizeConfig.screenHeight * 0.04,
           ),
           Flexible(
-            child: FlutterMap(
-              mapController: mapController,
-              options: MapOptions(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: FlutterMap(
+                mapController: mapController,
+                options: MapOptions(
                   center: LatLng(
                     widget.location.latitude,
                     widget.location.longitude,
                   ),
-                  zoom: 13.0,
-                  maxZoom: 13.0,
-                  minZoom: 3.0),
-              layers: [
-                TileLayerOptions(
-                  urlTemplate:
-                      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  subdomains: ['a', 'b', 'c'],
-                  userAgentPackageName: 'dev.fleaflet.flutter_map.example',
+                  zoom: 17.5,
+                  maxZoom: 17.5,
                 ),
-                MarkerLayerOptions(markers: markers)
-              ],
+                layers: [
+                  TileLayerOptions(
+                    urlTemplate:
+                        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    subdomains: ['a', 'b', 'c'],
+                    userAgentPackageName: 'dev.fleaflet.flutter_map.example',
+                  ),
+                  MarkerLayerOptions(markers: markers)
+                ],
+              ),
             ),
           ),
           SizedBox(

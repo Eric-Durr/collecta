@@ -1,6 +1,11 @@
+import 'package:collecta/controller/area.dart';
+import 'package:collecta/models/measure_area.dart';
 import 'package:collecta/models/transect_point.dart';
+import 'package:collecta/widgets/custom_suffix_icon.dart';
+import 'package:collecta/widgets/deffault_button.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../constants.dart';
 import '../../../db/transect_point_database.dart';
 import '../../../size_config.dart';
@@ -9,11 +14,18 @@ import '../../transect_point_measure/initial_form_screen.dart';
 import 'measure_list.dart';
 
 class Body extends StatefulWidget {
-  const Body({Key? key, required this.currentPosition, this.isOnline = false})
-      : super(key: key);
+  Body({
+    Key? key,
+    required this.updatePositionCallback,
+    required this.currentPosition,
+    required this.zoneAreas,
+    this.isOnline = false,
+  }) : super(key: key);
 
-  final Position currentPosition;
+  late Position currentPosition;
+  final List<MeasureArea> zoneAreas;
   final bool isOnline;
+  Function(Position) updatePositionCallback;
 
   @override
   State<Body> createState() => _BodyState();
@@ -27,10 +39,15 @@ class _BodyState extends State<Body> {
 
   // Geolocation
   final Geolocator geolocator = Geolocator();
-  late Position _currentPosition;
+  late MeasureArea? closestArea = null;
 
   // Tool variables
   List<TransectPoint> measures = [];
+
+  // Area dialog
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _areaIdValue = TextEditingController();
+  final TextEditingController _areaAnnotationsValue = TextEditingController();
 
   @override
   void initState() {
@@ -45,7 +62,11 @@ class _BodyState extends State<Body> {
     setState(() {
       isBussy = true;
     });
-    _currentPosition = widget.currentPosition;
+    await getClosestAreaIn100m(
+      widget.currentPosition.latitude,
+      widget.currentPosition.longitude,
+      widget.zoneAreas,
+    ).then((value) => closestArea = value != null ? value : null);
     if (widget.isOnline) {
       // onlineDB if user is connected
     } else {
@@ -149,7 +170,7 @@ class _BodyState extends State<Body> {
               forceAndroidLocationManager: true)
           .then((Position position) {
         setState(() {
-          _currentPosition = position;
+          widget.currentPosition = position;
         });
       }).catchError((e) {
         setState(() {
@@ -191,51 +212,83 @@ class _BodyState extends State<Body> {
                 ),
               ),
             if (!isBussy)
-              Card(
-                elevation: 0,
-                color: lightColorScheme.primaryContainer,
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
-                    child: Row(
+              closestArea == null
+                  ? SizedBox(
+                      width: getProportionateScreenWidth(200),
+                      child: DefaultButton(
+                        text: '+ Add new area',
+                        onPressedFunction: () async {
+                          await showInformationDialog(context);
+                        },
+                        buttonColor: lightColorScheme.surfaceVariant,
+                      ),
+                    )
+                  : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        if (isBussy) CircularProgressIndicator(),
-                        if (!isBussy && !locationFail)
-                          Text(
-                            'Latitude: ${_currentPosition.latitude.toStringAsPrecision(8)}, Longitude: ${_currentPosition.longitude.toStringAsPrecision(8)}',
-                            style: TextStyle(
-                                color: lightColorScheme.onPrimaryContainer,
-                                fontSize: getProportionateScreenWidth(12),
-                                fontWeight: FontWeight.bold),
-                          )
-                        else
-                          Text(
-                            'Retry location load',
-                            style: TextStyle(
-                                color: lightColorScheme.onPrimaryContainer,
-                                fontSize: getProportionateScreenWidth(12),
-                                fontWeight: FontWeight.bold),
-                          ),
-                        FormError(errors: errors),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(6, 0, 0, 0),
-                          child: OutlinedButton(
-                            onPressed: () async {
-                              await _determinePosition();
-                            },
-                            child: const Icon(
-                              Icons.replay_outlined,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Text(
+                          'Area ${closestArea!.id}',
+                          style: TextStyle(
+                              fontSize: getProportionateScreenWidth(18),
+                              fontWeight: FontWeight.bold),
+                        )
                       ],
                     ),
+            SizedBox(height: getProportionateScreenHeight(14)),
+            Card(
+              elevation: 0,
+              color: lightColorScheme.primaryContainer,
+              child: SizedBox(
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      if (isBussy) CircularProgressIndicator(),
+                      if (!isBussy && !locationFail)
+                        Text(
+                          'Latitude: ${widget.currentPosition.latitude.toStringAsPrecision(8)}, Longitude: ${widget.currentPosition.longitude.toStringAsPrecision(8)}',
+                          style: TextStyle(
+                              color: lightColorScheme.onPrimaryContainer,
+                              fontSize: getProportionateScreenWidth(12),
+                              fontWeight: FontWeight.bold),
+                        )
+                      else
+                        Text(
+                          'Retry location load',
+                          style: TextStyle(
+                              color: lightColorScheme.onPrimaryContainer,
+                              fontSize: getProportionateScreenWidth(12),
+                              fontWeight: FontWeight.bold),
+                        ),
+                      FormError(errors: errors),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(6, 0, 0, 0),
+                        child: OutlinedButton(
+                          onPressed: () async {
+                            await _determinePosition();
+                            widget
+                                .updatePositionCallback(widget.currentPosition);
+                            await getClosestAreaIn100m(
+                              widget.currentPosition.latitude,
+                              widget.currentPosition.longitude,
+                              widget.zoneAreas,
+                            ).then((value) =>
+                                closestArea = value != null ? value : null);
+                          },
+                          child: const Icon(
+                            Icons.replay_outlined,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
+            ),
             SizedBox(height: getProportionateScreenHeight(24)),
             FloatingActionButton(
               backgroundColor: Colors.black,
@@ -263,5 +316,99 @@ class _BodyState extends State<Body> {
         ),
       ),
     );
+  }
+
+  // New area dialog toggle
+  Future<void> showInformationDialog(BuildContext context) async {
+    return await showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              title: const Text('New area data'),
+              content: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      areaIdTextField(),
+                      SizedBox(
+                        height: getProportionateScreenHeight(20),
+                      ),
+                      areaAnnotationsTextField(),
+                    ],
+                  )),
+              actions: <Widget>[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
+                      child: IconButton(
+                        iconSize: getProportionateScreenWidth(32),
+                        color: lightColorScheme.error,
+                        onPressed: () {
+                          _areaIdValue.clear();
+                          _areaAnnotationsValue.clear();
+                          Navigator.of(context).pop();
+                        },
+                        icon: const Icon(Icons.cancel),
+                      ),
+                    ),
+                    Spacer(),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 15, 0),
+                      child: IconButton(
+                        iconSize: getProportionateScreenWidth(32),
+                        color: successContainer,
+                        onPressed: () async {
+                          SharedPreferences sharedPreferences =
+                              await SharedPreferences.getInstance();
+                          if (_formKey.currentState!.validate()) {
+                            MeasureArea? result = await addArea(
+                                widget.currentPosition.latitude,
+                                widget.currentPosition.longitude,
+                                int.parse(_areaIdValue.text),
+                                sharedPreferences.getString('projectId'),
+                                _areaAnnotationsValue.text,
+                                widget.zoneAreas);
+                            if (result == null) {
+                            } else {
+                              Navigator.of(context).pop();
+                              print(result.id);
+                            }
+                          }
+                        },
+                        icon: Icon(
+                          Icons.check_circle,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ],
+            );
+          });
+        });
+  }
+
+  TextFormField areaIdTextField() {
+    return TextFormField(
+        controller: _areaIdValue,
+        validator: (value) {
+          return value!.isNotEmpty ? null : "Enter any text";
+        },
+        decoration: const InputDecoration(
+            labelText: 'Area ID', helperText: 'Enter an area ID'));
+  }
+
+  TextFormField areaAnnotationsTextField() {
+    return TextFormField(
+        keyboardType: TextInputType.multiline,
+        maxLines: 4,
+        controller: _areaAnnotationsValue,
+        decoration: const InputDecoration(
+            labelText: 'Annotations', helperText: '(optional)'));
   }
 }
