@@ -1,4 +1,5 @@
 import 'package:collecta/controller/area.dart';
+import 'package:collecta/helpers/transect_form_args.screen.dart';
 import 'package:collecta/models/measure_area.dart';
 import 'package:collecta/models/transect_point.dart';
 import 'package:collecta/widgets/custom_suffix_icon.dart';
@@ -17,15 +18,19 @@ class Body extends StatefulWidget {
   Body({
     Key? key,
     required this.updatePositionCallback,
+    required this.updateAreasCallback,
     required this.currentPosition,
     required this.zoneAreas,
     this.isOnline = false,
   }) : super(key: key);
 
   late Position currentPosition;
-  final List<MeasureArea> zoneAreas;
+  late List<MeasureArea> zoneAreas;
   final bool isOnline;
+
+  // Parent comunication callbacks
   Function(Position) updatePositionCallback;
+  Function(List<MeasureArea>) updateAreasCallback;
 
   @override
   State<Body> createState() => _BodyState();
@@ -34,6 +39,7 @@ class Body extends StatefulWidget {
 class _BodyState extends State<Body> {
   // status handlers
   bool isBussy = false;
+  bool isReloadBussy = false;
   bool locationFail = false;
   final List<String> errors = [];
 
@@ -232,9 +238,14 @@ class _BodyState extends State<Body> {
                           style: TextStyle(
                               fontSize: getProportionateScreenWidth(18),
                               fontWeight: FontWeight.bold),
-                        )
+                        ),
                       ],
                     ),
+            if (isReloadBussy)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: LinearProgressIndicator(),
+              ),
             SizedBox(height: getProportionateScreenHeight(14)),
             Card(
               elevation: 0,
@@ -246,7 +257,7 @@ class _BodyState extends State<Body> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      if (isBussy) CircularProgressIndicator(),
+                      if (isBussy) const CircularProgressIndicator(),
                       if (!isBussy && !locationFail)
                         Text(
                           'Latitude: ${widget.currentPosition.latitude.toStringAsPrecision(8)}, Longitude: ${widget.currentPosition.longitude.toStringAsPrecision(8)}',
@@ -268,15 +279,23 @@ class _BodyState extends State<Body> {
                         padding: const EdgeInsets.fromLTRB(6, 0, 0, 0),
                         child: OutlinedButton(
                           onPressed: () async {
+                            setState(() {
+                              isReloadBussy = true;
+                            });
                             await _determinePosition();
                             widget
                                 .updatePositionCallback(widget.currentPosition);
-                            await getClosestAreaIn100m(
-                              widget.currentPosition.latitude,
-                              widget.currentPosition.longitude,
-                              widget.zoneAreas,
-                            ).then((value) =>
-                                closestArea = value != null ? value : null);
+
+                            SharedPreferences sharedPreferences =
+                                await SharedPreferences.getInstance();
+
+                            await updateClosestArea(sharedPreferences);
+
+                            // update data
+
+                            setState(() {
+                              isReloadBussy = false;
+                            });
                           },
                           child: const Icon(
                             Icons.replay_outlined,
@@ -290,25 +309,33 @@ class _BodyState extends State<Body> {
               ),
             ),
             SizedBox(height: getProportionateScreenHeight(24)),
-            FloatingActionButton(
-              backgroundColor: Colors.black,
-              splashColor: Colors.white.withOpacity(0.5),
-              tooltip: 'Add area measure in current location',
-              child: const Icon(
-                Icons.add,
-                size: 30,
+            if (closestArea != null)
+              Column(
+                children: [
+                  FloatingActionButton(
+                    backgroundColor: Colors.black,
+                    splashColor: Colors.white.withOpacity(0.5),
+                    tooltip: 'Add area measure in current location',
+                    child: const Icon(
+                      Icons.add,
+                      size: 30,
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(
+                          context, TransectFormInitialScreen.routeName,
+                          arguments: TransectArguments(
+                            measures: measures,
+                            areaId: closestArea!.id,
+                          ));
+                    },
+                  ),
+                  SizedBox(height: getProportionateScreenHeight(5)),
+                  const Text('Add area measure'),
+                ],
               ),
-              onPressed: () {
-                Navigator.pushNamed(
-                    context, TransectFormInitialScreen.routeName,
-                    arguments: measures);
-              },
-            ),
-            SizedBox(height: getProportionateScreenHeight(5)),
-            const Text('Add area measure'),
             SizedBox(height: getProportionateScreenHeight(40)),
             isBussy
-                ? CircularProgressIndicator()
+                ? const CircularProgressIndicator()
                 : MeasureList(
                     measures: measures,
                   ),
@@ -316,6 +343,23 @@ class _BodyState extends State<Body> {
         ),
       ),
     );
+  }
+
+  Future<void> updateClosestArea(SharedPreferences sharedPreferences) async {
+    await getZoneAreas(
+      widget.currentPosition.latitude,
+      widget.currentPosition.longitude,
+      sharedPreferences.getString('projectId'),
+    ).then((value) {
+      widget.zoneAreas = value;
+      widget.updateAreasCallback(value);
+    });
+
+    await getClosestAreaIn100m(
+      widget.currentPosition.latitude,
+      widget.currentPosition.longitude,
+      widget.zoneAreas,
+    ).then((value) => closestArea = value != null ? value : null);
   }
 
   // New area dialog toggle
@@ -356,7 +400,7 @@ class _BodyState extends State<Body> {
                         icon: const Icon(Icons.cancel),
                       ),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 0, 15, 0),
                       child: IconButton(
@@ -366,21 +410,60 @@ class _BodyState extends State<Body> {
                           SharedPreferences sharedPreferences =
                               await SharedPreferences.getInstance();
                           if (_formKey.currentState!.validate()) {
-                            MeasureArea? result = await addArea(
-                                widget.currentPosition.latitude,
-                                widget.currentPosition.longitude,
-                                int.parse(_areaIdValue.text),
-                                sharedPreferences.getString('projectId'),
-                                _areaAnnotationsValue.text,
-                                widget.zoneAreas);
-                            if (result == null) {
-                            } else {
-                              Navigator.of(context).pop();
-                              print(result.id);
-                            }
+                            await addArea(
+                                    widget.currentPosition.latitude,
+                                    widget.currentPosition.longitude,
+                                    int.parse(_areaIdValue.text),
+                                    sharedPreferences.getString('projectId'),
+                                    _areaAnnotationsValue.text,
+                                    widget.zoneAreas)
+                                .then((result) async {
+                              // Update areas and
+
+                              SharedPreferences sharedPreferences =
+                                  await SharedPreferences.getInstance();
+                              print(result.toString());
+                              if (result == 400) {
+                                // On error drop dialog
+
+                                await updateClosestArea(sharedPreferences);
+
+                                Navigator.of(context).pop();
+
+                                // Show error
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(SnackBar(
+                                  dismissDirection: DismissDirection.down,
+                                  duration: const Duration(seconds: 20),
+                                  backgroundColor:
+                                      lightColorScheme.errorContainer,
+                                  content: Text(
+                                    'ERROR: Area already exists. Try with a different ID',
+                                    style: TextStyle(
+                                        color:
+                                            lightColorScheme.onErrorContainer),
+                                  ),
+                                ));
+                              } else {
+                                await updateClosestArea(sharedPreferences);
+                                Navigator.of(context).pop();
+                                // Show error
+                                // Show error
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                  dismissDirection: DismissDirection.down,
+                                  duration: Duration(seconds: 20),
+                                  backgroundColor: successContainer,
+                                  content: Text(
+                                    'Area added successfully',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                ));
+                              }
+                            });
                           }
                         },
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.check_circle,
                         ),
                       ),

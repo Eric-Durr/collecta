@@ -47,6 +47,8 @@ dependencies:
   geolocator: ^9.0.1
   postgres: ^2.4.5
   json_annotation: ^4.0.1
+  flutter_typeahead: ^4.0.0
+
   # Packages for data persistance in offline mode
   sqflite: ^2.0.3
   path: ^1.8.1

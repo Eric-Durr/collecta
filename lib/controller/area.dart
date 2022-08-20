@@ -66,7 +66,7 @@ Future<MeasureArea?> getClosestAreaIn100m(
   return anyArea ? closestArea : null;
 }
 
-Future<MeasureArea?> addArea(
+Future<int> addArea(
   double lat,
   double lon,
   int id,
@@ -75,8 +75,10 @@ Future<MeasureArea?> addArea(
   List<MeasureArea> zoneAreas,
 ) async {
   MeasureArea newArea;
-  print(zoneAreas.length);
-  getClosestArea(lat, lon, zoneAreas).then((area) async {
+  int returnValue = 400;
+  await getClosestArea(lat, lon, zoneAreas).then((area) async {
+    print('i come frist');
+
     Map areaJSON = {};
 
     if (area != null) {
@@ -95,17 +97,14 @@ Future<MeasureArea?> addArea(
     var response = await http
         .post(Uri.parse('$API_SERVER:$API_PORT/api/areas/'), body: areaJSON);
 
-    var jsonResponse = await json.decode(response.body);
-    if (response.statusCode == 200) {
-      if (jsonResponse['message'] != 'Area added succesfully') {
-        return null;
-      } else {
-        return MeasureArea.fromJSON(jsonResponse['area']);
-      }
-    } else {
-      return null;
+    if (response.statusCode == 201) {
+      var jsonResponse = await json.decode(response.body);
+      MeasureArea newArea = MeasureArea.fromJSON(jsonResponse['area']);
+      returnValue = 201;
     }
   });
+  print('iam the last');
+  return returnValue;
 }
 
 // Secondary methods

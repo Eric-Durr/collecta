@@ -1,3 +1,4 @@
+import 'package:collecta/helpers/transect_form_args.screen.dart';
 import 'package:collecta/models/transect_point.dart';
 import 'package:collecta/screens/team_profile/widgets/body.dart';
 import 'package:collecta/screens/transect_point_measure/widgets/initial_body.dart';
@@ -12,15 +13,16 @@ class TransectFormInitialScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
-    List<TransectPoint> measures =
-        ModalRoute.of(context)!.settings.arguments as List<TransectPoint>;
+    TransectArguments args =
+        ModalRoute.of(context)!.settings.arguments as TransectArguments;
     return Scaffold(
         appBar: AppBar(
           title: const Text('Initial Transect Form Screen'),
           automaticallyImplyLeading: true,
         ),
         body: InitialBody(
-          measures: measures,
+          measures: args.measures!,
+          areaId: args.areaId!,
         ));
   }
 }

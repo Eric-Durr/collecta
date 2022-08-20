@@ -12,13 +12,15 @@ class TransectAreaScreen extends StatefulWidget {
       required this.currentPosition,
       required this.zoneAreas,
       required this.updatePositionCallback,
+      required this.updateAreasCallback,
       this.isOnline = false})
       : super(key: key);
 
   final bool isOnline;
   late Position currentPosition;
-  final List<MeasureArea> zoneAreas;
+  late List<MeasureArea> zoneAreas;
   Function(Position) updatePositionCallback;
+  Function(List<MeasureArea>) updateAreasCallback;
 
   @override
   State<TransectAreaScreen> createState() => _TransectAreaScreenState();
@@ -38,10 +40,17 @@ class _TransectAreaScreenState extends State<TransectAreaScreen> {
           isOnline: widget.isOnline,
           zoneAreas: widget.zoneAreas,
           updatePositionCallback: updatePositionCallback,
+          updateAreasCallback: updateAreasCallback,
         ));
   }
 
   updatePositionCallback(newPosition) {
     widget.updatePositionCallback(newPosition);
+  }
+
+  updateAreasCallback(newZoneAreas) {
+    setState(() {
+      widget.updateAreasCallback(newZoneAreas);
+    });
   }
 }

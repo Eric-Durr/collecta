@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:collecta/constants.dart';
+import 'package:collecta/controller/species.dart';
 import 'package:collecta/db/transect_point_database.dart';
 import 'package:collecta/main.dart';
 import 'package:collecta/models/transect_point.dart';
@@ -9,7 +10,9 @@ import 'package:collecta/size_config.dart';
 import 'package:collecta/widgets/custom_suffix_icon.dart';
 import 'package:collecta/widgets/deffault_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
 
 import 'progress_header.dart';
@@ -17,41 +20,57 @@ import 'progress_header.dart';
 enum TransectPointTypes { species, mulch, soil, stone, rock }
 
 class InitialBody extends StatefulWidget {
-  final List<TransectPoint> measures;
   const InitialBody({
     Key? key,
+    required this.areaId,
     required this.measures,
   }) : super(key: key);
+
+  final List<TransectPoint> measures;
+  final int areaId;
 
   @override
   State<InitialBody> createState() => _InitialBodyState();
 }
 
 class _InitialBodyState extends State<InitialBody> {
-  Duration duration = Duration();
   String formStage = 'init';
-  String speciesName = '';
+  String userName = '';
   TransectPointTypes measureType = TransectPointTypes.species;
-  int hits = 0;
-  final TextEditingController hitsController = new TextEditingController();
-  bool enableField = true;
-  Timer? timer;
+
+  bool enableHitsField = true;
   late TransectPoint currentPoint;
+
+  // Controllers
+  final TextEditingController _hitsController = TextEditingController()
+    ..text = '0';
+  final TextEditingController _speciesNameController = TextEditingController()
+    ..text = '';
+
+  // Timer variables
+  Timer? timer;
+  Duration duration = const Duration();
 
   @override
   void initState() {
     // TODO: implement initState
+    initPerefernces();
     super.initState();
 
-    hitsController.text = '0';
     // startTimer();
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
-    hitsController.dispose();
     super.dispose();
+  }
+
+  void initPerefernces() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    setState(() {
+      userName = sharedPreferences.getString('username') ?? '';
+    });
   }
 
   @override
@@ -63,163 +82,26 @@ class _InitialBodyState extends State<InitialBody> {
           padding:
               EdgeInsets.symmetric(horizontal: getProportionateScreenWidth(20)),
           child: Column(children: [
+            Text(formStage),
             Text(
-              'AREA ${widget.measures[0].areaId}',
+              'AREA ${widget.areaId} - POINT ${widget.measures.length + 1}',
               style: TextStyle(
                   fontSize: getProportionateScreenWidth(18),
                   fontWeight: FontWeight.bold),
             ),
-            Text(formStage),
             pageHeader(),
             SizedBox(height: getProportionateScreenHeight(20)),
-            ProgressHeader(
-              stepTitle: headerTitle(),
-            ),
-            if (formStage == 'hits' ||
-                formStage == 'type' ||
-                formStage == 'hitsAndType' ||
-                formStage == 'speciesSelect')
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  SizedBox(height: getProportionateScreenHeight(20)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [Expanded(child: buildHitsField())],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: Row(
-                          children: [
-                            Radio(
-                              value: TransectPointTypes.species,
-                              groupValue: measureType,
-                              onChanged: (TransectPointTypes? value) {
-                                setState(() {
-                                  measureType = value!;
-                                  enableField = true;
-                                  hits = 0;
-                                  if (hits.toString() == '0') {
-                                    formStage = 'hits';
-                                  }
-                                });
-                              },
-                            ),
-                            Expanded(
-                              child: Text('Species'),
-                            )
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Row(
-                          children: [
-                            Radio(
-                              value: TransectPointTypes.soil,
-                              groupValue: measureType,
-                              onChanged: (TransectPointTypes? value) {
-                                setState(() {
-                                  measureType = value!;
-                                  hits = 1;
-                                  hitsController.text = '1';
-                                  enableField = false;
-                                  formStage = 'hitsAndType';
-                                });
-                              },
-                            ),
-                            Expanded(child: Text('Soil'))
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Row(
-                          children: [
-                            Radio(
-                              value: TransectPointTypes.rock,
-                              groupValue: measureType,
-                              onChanged: (TransectPointTypes? value) {
-                                setState(() {
-                                  setState(() {
-                                    measureType = value!;
-                                    hits = 1;
-                                    hitsController.text = '1';
-                                    enableField = false;
-                                    formStage = 'hitsAndType';
-                                  });
-                                });
-                              },
-                            ),
-                            Expanded(child: Text('Rock'))
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Expanded(child: Text('')),
-                      Expanded(
-                        flex: 1,
-                        child: Row(
-                          children: [
-                            Radio(
-                              value: TransectPointTypes.mulch,
-                              groupValue: measureType,
-                              onChanged: (TransectPointTypes? value) {
-                                setState(() {
-                                  setState(() {
-                                    measureType = value!;
-                                    hits = 1;
-                                    hitsController.text = '1';
-                                    enableField = false;
-                                    formStage = 'hitsAndType';
-                                  });
-                                });
-                              },
-                            ),
-                            Expanded(child: Text('Mulch'))
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Row(
-                          children: [
-                            Radio(
-                              value: TransectPointTypes.stone,
-                              groupValue: measureType,
-                              onChanged: (TransectPointTypes? value) {
-                                setState(() {
-                                  setState(() {
-                                    measureType = value!;
-                                    hits = 1;
-                                    hitsController.text = '1';
-                                    enableField = false;
-                                    formStage = 'hitsAndType';
-                                  });
-                                });
-                              },
-                            ),
-                            Expanded(child: Text('Stone'))
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              )
+            ProgressHeader(stepTitle: headerTitle()),
+            if (formStage != 'init' && formStage != 'details')
+              selectionRadioButtons()
             else
               SizedBox(height: getProportionateScreenHeight(200)),
-            if (formStage == 'speciesSelect')
-              buildSpeciesSelect()
+            if (formStage == 'species' || formStage == 'nextSpecies')
+              selectionMenu()
             else
               SizedBox(height: getProportionateScreenHeight(100)),
+            if (formStage == 'details')
+              Center(child: Text('form details goes here')),
             SizedBox(height: getProportionateScreenHeight(100)),
             if (formStage == 'init')
               DefaultButton(
@@ -237,7 +119,7 @@ class _InitialBodyState extends State<InitialBody> {
               controlButtons(),
             SizedBox(height: getProportionateScreenHeight(20)),
             StepProgressIndicator(
-              totalSteps: 5,
+              totalSteps: 6,
               currentStep: indicateStep(),
               size: 20,
               padding: 0,
@@ -252,16 +134,212 @@ class _InitialBodyState extends State<InitialBody> {
     );
   }
 
+  // Widget Functions
+
+  Column selectionMenu() {
+    return Column(
+      children: [
+        SizedBox(height: getProportionateScreenHeight(42)),
+        TypeAheadField<String?>(
+          minCharsForSuggestions: 2,
+          suggestionsCallback: getTransectSpeciesNamesLoaded,
+          hideOnLoading: true,
+          itemBuilder: (context, String? speciesSugestion) {
+            final species = speciesSugestion;
+            return ListTile(title: Text(species ?? ''));
+          },
+          keepSuggestionsOnLoading: false,
+          textFieldConfiguration:
+              TextFieldConfiguration(controller: _speciesNameController),
+          noItemsFoundBuilder: (context) => Center(
+            child: Container(
+                padding: EdgeInsets.all(10),
+                width: getProportionateScreenWidth(200),
+                height: getProportionateScreenHeight(2000),
+                child: Column(
+                  children: [
+                    Text(
+                        '${_speciesNameController.text} not found in database'),
+                    DefaultButton(
+                      text: 'add to list',
+                      onPressedFunction: () {},
+                    ),
+                  ],
+                )),
+          ),
+          onSuggestionSelected: (String? suggestion) {
+            _speciesNameController.text = suggestion ?? '';
+            if (_speciesNameController.text != '') {
+              formStage = 'nextSpecies';
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  Column selectionRadioButtons() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        SizedBox(height: getProportionateScreenHeight(20)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [Expanded(child: buildHitsField())],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Expanded(
+              flex: 1,
+              child: Row(
+                children: [
+                  Radio(
+                    value: TransectPointTypes.species,
+                    groupValue: measureType,
+                    onChanged: (TransectPointTypes? value) {
+                      setState(() {
+                        measureType = value!;
+                        enableHitsField = true;
+                        _hitsController.text = '0';
+                        _speciesNameController.text = '';
+                        if (_hitsController.text == '0') {
+                          formStage = 'hits';
+                        }
+                      });
+                    },
+                  ),
+                  const Expanded(
+                    child: Text('Species'),
+                  )
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Row(
+                children: [
+                  Radio(
+                    value: TransectPointTypes.soil,
+                    groupValue: measureType,
+                    onChanged: (TransectPointTypes? value) {
+                      setState(() {
+                        measureType = value!;
+                        _hitsController.text = '1';
+                        _speciesNameController.text = 'Suelo';
+                        enableHitsField = false;
+                        formStage = 'details';
+                      });
+                    },
+                  ),
+                  const Expanded(child: Text('Soil'))
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Row(
+                children: [
+                  Radio(
+                    value: TransectPointTypes.rock,
+                    groupValue: measureType,
+                    onChanged: (TransectPointTypes? value) {
+                      setState(() {
+                        setState(() {
+                          measureType = value!;
+                          _hitsController.text = '1';
+                          _speciesNameController.text = 'Roca';
+                          enableHitsField = false;
+                          formStage = 'details';
+                        });
+                      });
+                    },
+                  ),
+                  const Expanded(child: Text('Rock'))
+                ],
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            const Expanded(child: Text('')),
+            Expanded(
+              flex: 1,
+              child: typeSelectionRadioButtons(),
+            ),
+            Expanded(
+              flex: 1,
+              child: Row(
+                children: [
+                  Radio(
+                    value: TransectPointTypes.stone,
+                    groupValue: measureType,
+                    onChanged: (TransectPointTypes? value) {
+                      setState(() {
+                        setState(() {
+                          measureType = value!;
+                          _hitsController.text = '1';
+                          _speciesNameController.text = 'Piedra';
+                          enableHitsField = false;
+                          formStage = 'details';
+                        });
+                      });
+                    },
+                  ),
+                  const Expanded(child: Text('Stone'))
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Row typeSelectionRadioButtons() {
+    return Row(
+      children: [
+        Radio(
+          value: TransectPointTypes.mulch,
+          groupValue: measureType,
+          onChanged: (TransectPointTypes? value) {
+            setState(() {
+              setState(() {
+                measureType = value!;
+                _hitsController.text = '1';
+                _speciesNameController.text = 'Mantillo';
+                enableHitsField = false;
+                formStage = 'details';
+              });
+            });
+          },
+        ),
+        const Expanded(child: Text('Mulch'))
+      ],
+    );
+  }
+
   TextFormField buildHitsField() {
     return TextFormField(
         keyboardType: TextInputType.text,
-        enabled: enableField,
-        initialValue: hits.toString(),
+        enabled: enableHitsField,
+        controller: _hitsController,
         onChanged: (value) {
-          hits = value != '' ? int.parse(value) : 0;
+          _hitsController.text != '' ? int.parse(_hitsController.text) : 0;
+
           if (value == '0' || value == '') {
             setState(() {
               formStage = 'hits';
+            });
+          } else if (measureType == TransectPointTypes.species) {
+            setState(() {
+              formStage = 'species';
+            });
+          } else {
+            setState(() {
+              formStage = 'details';
             });
           }
         },
@@ -269,24 +347,6 @@ class _InitialBodyState extends State<InitialBody> {
           labelText: 'Hits',
           helperText: 'Enter number of hits',
         ));
-  }
-
-  TextFormField buildSpeciesSelect() {
-    return TextFormField(
-        keyboardType: TextInputType.text,
-        enabled: enableField,
-        initialValue: speciesName,
-        onChanged: (value) {
-          speciesName = value;
-        },
-        decoration: const InputDecoration(
-          labelText: 'Species list',
-          helperText: 'Enter the name of species',
-        ));
-  }
-
-  void _printLatestValue() {
-    print('${hitsController.text}');
   }
 
   Row controlButtons() {
@@ -305,13 +365,23 @@ class _InitialBodyState extends State<InitialBody> {
                   if (formStage == 'hits' || formStage == 'type') {
                     formStage = 'init';
                     stopTimer();
-                  }
-
-                  if (formStage == 'histAndType') {
-                    formStage = 'init';
-                  }
-                  if (formStage == 'speciesSelect') {
-                    formStage = 'hitsAndType';
+                  } else if (formStage == 'species') {
+                    _speciesNameController.text = '';
+                    formStage = 'hits';
+                  } else if (formStage == 'details') {
+                    formStage = measureType == TransectPointTypes.species
+                        ? 'species'
+                        : 'init';
+                    if (measureType != TransectPointTypes.species) {
+                      measureType = TransectPointTypes.species;
+                      enableHitsField = true;
+                    }
+                  } else if (formStage == 'next' || formStage == 'submit') {
+                    formStage = 'details';
+                  } else if (formStage == 'nextSpecies') {
+                    formStage = 'species';
+                  } else {
+                    formStage = 'type';
                   }
                 });
               },
@@ -324,20 +394,28 @@ class _InitialBodyState extends State<InitialBody> {
                 horizontal: getProportionateScreenWidth(5)),
             child: DefaultButton(
               text: controllerButtonText(),
-              buttonColor: formStage == 'hitsAndType'
+              buttonColor: formStage == 'details' ||
+                      formStage == 'submit' ||
+                      formStage == 'next' ||
+                      formStage == 'nextSpecies'
                   ? successContainer
                   : lightColorScheme.outline,
               textColor: Colors.white,
               onPressedFunction: () {
                 setState(() {
-                  if (formStage == 'hitsAndType') {
-                    if (measureType != 'species') {
-                      formStage = 'speciesSelect';
-                    } else {
-                      formStage = widget.measures.length == 100
-                          ? 'lastComplete'
-                          : 'complete';
-                    }
+                  if (formStage == 'details') {
+                    formStage =
+                        widget.measures.length == 100 ? 'submit' : 'next';
+                  }
+                  if (formStage == 'submit') {
+                    // Submit all transect measures
+                  }
+                  if (formStage == 'next') {
+                    // Add point to measures and reset form
+                  }
+
+                  if (formStage == 'nextSpecies') {
+                    formStage = 'details';
                   }
                 });
               },
@@ -355,7 +433,7 @@ class _InitialBodyState extends State<InitialBody> {
           radius: getProportionateScreenWidth(30),
           backgroundColor: lightColorScheme.secondaryContainer,
           child: Text(
-            'username'.toString().substring(0, 2).toUpperCase(),
+            userName.toString().substring(0, 2).toUpperCase(),
             style: TextStyle(
                 fontSize: getProportionateScreenWidth(22),
                 fontWeight: FontWeight.w600,
@@ -366,16 +444,138 @@ class _InitialBodyState extends State<InitialBody> {
           width: getProportionateScreenWidth(10),
         ),
         Text(
-          '${'username'.split('_').join(' ').toUpperCase()}',
+          '${userName.split('_').join(' ').toUpperCase()}',
           style: TextStyle(
               fontSize: getProportionateScreenWidth(14),
               fontWeight: FontWeight.bold),
         ),
+        const Spacer(),
         buildTime(),
       ],
     );
   }
 
+  // Layout state setters
+
+  //                                                             point_id == 100 ?
+  // STATES FOR SPECIES: init > type > hits > species > details > next || submit
+  //                      (1)    (2)    (3)     (4)      (5)       (6)     (7)
+  // STATES FOR OTHER: init > type > details > submit
+
+  int indicateStep() {
+    if (formStage == 'init') {
+      return 1;
+    }
+    if (formStage == 'type') {
+      return 2;
+    }
+    if (formStage == 'hits') {
+      return 3;
+    }
+    if (formStage == 'species' || formStage == 'nextSpecies') {
+      return 4;
+    }
+    if (formStage == 'details') {
+      return 5;
+    }
+    if (formStage == 'next' || formStage == 'submit') {
+      return 6;
+    }
+    return 0;
+  }
+
+  String indicateStepHint() {
+    if (formStage == 'init') {
+      return 'Area measures overview';
+    }
+    if (formStage == 'type') {
+      return 'Select point type';
+    }
+    if (formStage == 'hits') {
+      return 'Type the hits value on the text field';
+    }
+    if (formStage == 'species') {
+      return 'Add the species in the combobox';
+    }
+    if (formStage == 'nextSpecies') {
+      return 'Press next to see details';
+    }
+    if (formStage == 'details') {
+      return 'Finish measure by adding optional annotations';
+    }
+    if (formStage == 'next') {
+      return 'Add a new point to the transect';
+    }
+    if (formStage == 'submit') {
+      return 'Submit area transect measures';
+    }
+    return '';
+  }
+
+  String headerTitle() {
+    if (formStage == 'init') {
+      return 'MEASURES OVERVIEW';
+    }
+    if (formStage == 'hits' || formStage == 'type') {
+      return 'MEASURE DATA SETTING';
+    }
+    if (formStage == 'species') {
+      return 'SELECT POINT SPECIES ';
+    }
+
+    if (formStage == 'nextSpecies') {
+      return 'SPECIES SELECTED';
+    }
+    if (formStage == 'details') {
+      return 'POINT ${widget.measures.length + 1} PREVIEW';
+    }
+
+    if (formStage == 'next') {
+      return 'POINT ${widget.measures.length + 1} COMPLETE';
+    }
+
+    if (formStage == 'submit') {
+      return 'SUBMIT TRANSECT';
+    }
+    return '';
+  }
+
+  String controllerButtonText() {
+    if (formStage == 'details' && widget.measures.length != 100) {
+      return 'ADD POINT';
+    } else if (formStage == 'details' &&
+        measureType != TransectPointTypes.species &&
+        widget.measures.length == 100) {
+      return 'SUBMIT';
+    } else {
+      return 'NEXT';
+    }
+  }
+
+  // Timer controller
+  void stopTimer() {
+    setState(() {
+      timer?.cancel();
+    });
+  }
+
+  void startTimer() {
+    timer = Timer.periodic(const Duration(seconds: 1), (_) => addTime());
+  }
+
+  void resetTimer() {
+    setState(() => duration = const Duration());
+  }
+
+  addTime() {
+    final addSecond = 1;
+    setState(() {
+      final seconds = duration.inSeconds + addSecond;
+      duration = Duration(seconds: seconds);
+    });
+  }
+
+  // Timer
   Widget buildTime() {
     String twoDigits(int num) => num.toString().padLeft(2, '0');
     final hours = twoDigits(duration.inHours.remainder(60));
@@ -394,106 +594,5 @@ class _InitialBodyState extends State<InitialBody> {
                 color: lightColorScheme.onSecondaryContainer),
           ),
         ));
-  }
-
-  void startTimer() {
-    timer = Timer.periodic(Duration(seconds: 1), (_) => addTime());
-  }
-
-  void resetTimer() {
-    setState(() => duration = Duration());
-  }
-
-  addTime() {
-    final addSecond = 1;
-    setState(() {
-      final seconds = duration.inSeconds + addSecond;
-      duration = Duration(seconds: seconds);
-    });
-  }
-
-  int indicateStep() {
-    if (formStage == 'init') {
-      return 1;
-    }
-    if (formStage == 'hits' || formStage == 'type') {
-      return 2;
-    }
-    if (formStage == 'hitsAndType') {
-      return 3;
-    }
-    if (formStage == 'speciesSelect') {
-      return 4;
-    }
-    if (formStage == 'complete' || formStage == 'lastComplete') {
-      return 5;
-    }
-    return 0;
-  }
-
-  String indicateStepHint() {
-    if (formStage == 'init') {
-      return 'Area measures overview';
-    }
-    if (formStage == 'hits' || formStage == 'type') {
-      return 'Add hits and select point type';
-    }
-    if (formStage == 'hitsAndType') {
-      return 'Hit next to select Species';
-    }
-    if (formStage == 'speciesSelect') {
-      return 'Select, type or ask for species';
-    }
-    if (formStage == 'complete') {
-      return 'Submit or pass to next point';
-    }
-
-    if (formStage == 'lastComplete') {
-      return 'Submit area measure';
-    }
-    return '';
-  }
-
-  String controllerButtonText() {
-    if (formStage == 'hitsAndType' &&
-        measureType != TransectPointTypes.species &&
-        widget.measures.length != 100) {
-      return 'ADD POINT';
-    } else if (formStage == 'hitsAndType' &&
-        measureType != TransectPointTypes.species &&
-        widget.measures.length == 100) {
-      return 'SUBMIT AREA';
-    } else {
-      return 'NEXT';
-    }
-  }
-
-  void stopTimer() {
-    setState(() {
-      timer?.cancel();
-    });
-  }
-
-  String headerTitle() {
-    if (formStage == 'init') {
-      return 'MEASURES OVERVIEW';
-    }
-    if (formStage == 'hits' || formStage == 'type') {
-      return 'MEASURE DATA POINT ${widget.measures.length + 1}';
-    }
-    if (formStage == 'hitsAndType') {
-      return 'MEASURE DATA POINT ${widget.measures.length + 1}';
-    }
-    if (formStage == 'speciesSelect') {
-      return 'SELECT SPECIES POINT ${widget.measures.length + 1}';
-    }
-    if (formStage == 'complete') {
-      return 'POINT ${widget.measures.length + 1} COMPLETE';
-    }
-
-    if (formStage == 'lastComplete') {
-      return 'SUBMIT AREA';
-    }
-    return '';
   }
 }

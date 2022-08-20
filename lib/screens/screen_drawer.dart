@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:collecta/constants.dart';
 import 'package:collecta/controller/area.dart';
+import 'package:collecta/controller/species.dart';
 import 'package:collecta/helpers/utm_zone_convert.dart';
 import 'package:collecta/models/measure_area.dart';
 import 'package:collecta/screens/insights/inisghts_screen.dart';
@@ -107,6 +108,13 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
 
     await getAndParseAreas();
 
+    // Zone area retrieving process
+    setState(() {
+      currentInitState = 'Retrieving species';
+    });
+
+    await getSpecies();
+
     setState(() {
       isBussy = false;
     });
@@ -190,6 +198,7 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
                 isOnline: isOnline,
                 currentPosition: _currentPosition,
                 updatePositionCallback: updatePositionCallback,
+                updateAreasCallback: updateAreasCallback,
               ),
               TeamProfileScreen(
                 username: sharedPreferences.getString('username'),
@@ -201,17 +210,7 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
 
   checkConnectionStatus() async {
     var result = await Connectivity().checkConnectivity();
-    if (result == ConnectivityResult.mobile) {
-      print("Internet connection is from Mobile data");
-    } else if (result == ConnectivityResult.wifi) {
-      print("internet connection is from wifi");
-    } else if (result == ConnectivityResult.ethernet) {
-      print("internet connection is from wired cable");
-    } else if (result == ConnectivityResult.bluetooth) {
-      print("internet connection is from bluethooth threatening");
-    } else if (result == ConnectivityResult.none) {
-      print("No internet connection");
-    }
+
     setState(() {
       isOnline = result == ConnectivityResult.mobile ||
           result == ConnectivityResult.wifi;
@@ -262,12 +261,23 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
     await getZoneAreas(_currentPosition.latitude, _currentPosition.longitude,
             sharedPreferences.getString('projectId'))
         .then((value) => areas = value);
-    print(areas.length.toString());
+  }
+
+  getSpecies() async {
+    List<String> allSpecies = await getTransectSpeciesNamesNoQuery();
+    await sharedPreferences.setStringList(
+        'completeTransectSpeciesList', allSpecies);
   }
 
   updatePositionCallback(newPosition) {
     setState(() {
       _currentPosition = newPosition;
+    });
+  }
+
+  updateAreasCallback(newAreaList) {
+    setState(() {
+      areas = newAreaList;
     });
   }
 }
