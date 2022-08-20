@@ -39,6 +39,7 @@ class _InitialBodyState extends State<InitialBody> {
   TransectPointTypes measureType = TransectPointTypes.species;
 
   bool enableHitsField = true;
+  bool enableSpeciesField = true;
   late TransectPoint currentPoint;
 
   // Controllers
@@ -76,59 +77,61 @@ class _InitialBodyState extends State<InitialBody> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: SizedBox(
-        width: double.infinity,
-        child: Padding(
-          padding:
-              EdgeInsets.symmetric(horizontal: getProportionateScreenWidth(20)),
-          child: Column(children: [
-            Text(formStage),
-            Text(
-              'AREA ${widget.areaId} - POINT ${widget.measures.length + 1}',
-              style: TextStyle(
-                  fontSize: getProportionateScreenWidth(18),
-                  fontWeight: FontWeight.bold),
-            ),
-            pageHeader(),
-            SizedBox(height: getProportionateScreenHeight(20)),
-            ProgressHeader(stepTitle: headerTitle()),
-            if (formStage != 'init' && formStage != 'details')
-              selectionRadioButtons()
-            else
-              SizedBox(height: getProportionateScreenHeight(200)),
-            if (formStage == 'species' || formStage == 'nextSpecies')
-              selectionMenu()
-            else
+      child: SingleChildScrollView(
+        child: SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: getProportionateScreenWidth(20)),
+            child: Column(children: [
+              Text(formStage),
+              Text(
+                'AREA ${widget.areaId} - POINT ${widget.measures.length + 1}',
+                style: TextStyle(
+                    fontSize: getProportionateScreenWidth(18),
+                    fontWeight: FontWeight.bold),
+              ),
+              pageHeader(),
+              SizedBox(height: getProportionateScreenHeight(20)),
+              ProgressHeader(stepTitle: headerTitle()),
+              if (formStage != 'init' && formStage != 'details')
+                selectionRadioButtons()
+              else
+                SizedBox(height: getProportionateScreenHeight(200)),
+              if (formStage == 'species' || formStage == 'nextSpecies')
+                selectionMenu()
+              else
+                SizedBox(height: getProportionateScreenHeight(100)),
+              if (formStage == 'details')
+                Center(child: Text('form details goes here')),
               SizedBox(height: getProportionateScreenHeight(100)),
-            if (formStage == 'details')
-              Center(child: Text('form details goes here')),
-            SizedBox(height: getProportionateScreenHeight(100)),
-            if (formStage == 'init')
-              DefaultButton(
-                text: 'START',
-                buttonColor: successContainer,
-                textColor: Colors.white,
-                onPressedFunction: () {
-                  startTimer();
-                  setState(() {
-                    formStage = 'hits';
-                  });
-                },
-              )
-            else
-              controlButtons(),
-            SizedBox(height: getProportionateScreenHeight(20)),
-            StepProgressIndicator(
-              totalSteps: 6,
-              currentStep: indicateStep(),
-              size: 20,
-              padding: 0,
-              selectedColor: const Color.fromARGB(255, 147, 85, 222),
-              unselectedColor: Colors.grey.withOpacity(0.3),
-              roundedEdges: const Radius.circular(14),
-            ),
-            Text(indicateStepHint())
-          ]),
+              if (formStage == 'init')
+                DefaultButton(
+                  text: 'START',
+                  buttonColor: successContainer,
+                  textColor: Colors.white,
+                  onPressedFunction: () {
+                    startTimer();
+                    setState(() {
+                      formStage = 'hits';
+                    });
+                  },
+                )
+              else
+                controlButtons(),
+              SizedBox(height: getProportionateScreenHeight(20)),
+              StepProgressIndicator(
+                totalSteps: 6,
+                currentStep: indicateStep(),
+                size: 20,
+                padding: 0,
+                selectedColor: const Color.fromARGB(255, 147, 85, 222),
+                unselectedColor: Colors.grey.withOpacity(0.3),
+                roundedEdges: const Radius.circular(14),
+              ),
+              Text(indicateStepHint())
+            ]),
+          ),
         ),
       ),
     );
@@ -141,16 +144,15 @@ class _InitialBodyState extends State<InitialBody> {
       children: [
         SizedBox(height: getProportionateScreenHeight(42)),
         TypeAheadField<String?>(
+          hideSuggestionsOnKeyboardHide: false,
           minCharsForSuggestions: 2,
           suggestionsCallback: getTransectSpeciesNamesLoaded,
-          hideOnLoading: true,
           itemBuilder: (context, String? speciesSugestion) {
             final species = speciesSugestion;
             return ListTile(title: Text(species ?? ''));
           },
-          keepSuggestionsOnLoading: false,
-          textFieldConfiguration:
-              TextFieldConfiguration(controller: _speciesNameController),
+          textFieldConfiguration: TextFieldConfiguration(
+              controller: _speciesNameController, enabled: enableSpeciesField),
           noItemsFoundBuilder: (context) => Center(
             child: Container(
                 padding: EdgeInsets.all(10),
@@ -201,6 +203,7 @@ class _InitialBodyState extends State<InitialBody> {
                       setState(() {
                         measureType = value!;
                         enableHitsField = true;
+                        enableSpeciesField = true;
                         _hitsController.text = '0';
                         _speciesNameController.text = '';
                         if (_hitsController.text == '0') {
@@ -228,7 +231,8 @@ class _InitialBodyState extends State<InitialBody> {
                         _hitsController.text = '1';
                         _speciesNameController.text = 'Suelo';
                         enableHitsField = false;
-                        formStage = 'details';
+                        enableSpeciesField = false;
+                        formStage = 'nextSpecies';
                       });
                     },
                   ),
@@ -250,7 +254,8 @@ class _InitialBodyState extends State<InitialBody> {
                           _hitsController.text = '1';
                           _speciesNameController.text = 'Roca';
                           enableHitsField = false;
-                          formStage = 'details';
+                          enableSpeciesField = false;
+                          formStage = 'nextSpecies';
                         });
                       });
                     },
@@ -283,7 +288,8 @@ class _InitialBodyState extends State<InitialBody> {
                           _hitsController.text = '1';
                           _speciesNameController.text = 'Piedra';
                           enableHitsField = false;
-                          formStage = 'details';
+                          enableSpeciesField = false;
+                          formStage = 'nextSpecies';
                         });
                       });
                     },
@@ -311,7 +317,8 @@ class _InitialBodyState extends State<InitialBody> {
                 _hitsController.text = '1';
                 _speciesNameController.text = 'Mantillo';
                 enableHitsField = false;
-                formStage = 'details';
+                enableSpeciesField = false;
+                formStage = 'nextSpecies';
               });
             });
           },
@@ -369,12 +376,13 @@ class _InitialBodyState extends State<InitialBody> {
                     _speciesNameController.text = '';
                     formStage = 'hits';
                   } else if (formStage == 'details') {
-                    formStage = measureType == TransectPointTypes.species
-                        ? 'species'
-                        : 'init';
+                    formStage = 'nextSpecies';
                     if (measureType != TransectPointTypes.species) {
                       measureType = TransectPointTypes.species;
                       enableHitsField = true;
+                      _speciesNameController.text = '';
+                      _hitsController.text = '0';
+                      enableSpeciesField = true;
                     }
                   } else if (formStage == 'next' || formStage == 'submit') {
                     formStage = 'details';

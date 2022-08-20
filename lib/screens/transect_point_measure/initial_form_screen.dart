@@ -16,6 +16,7 @@ class TransectFormInitialScreen extends StatelessWidget {
     TransectArguments args =
         ModalRoute.of(context)!.settings.arguments as TransectArguments;
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: const Text('Initial Transect Form Screen'),
           automaticallyImplyLeading: true,
