@@ -39,7 +39,7 @@ class TransectPoint {
   final bool? stone;
   final String? annotations;
   final DateTime created;
-  final DateTime mark;
+  final String mark;
   final int hits;
   final int areaId;
   final int teamId;
@@ -68,7 +68,7 @@ class TransectPoint {
     bool? stone,
     String? annotations,
     DateTime? created,
-    DateTime? mark,
+    String? mark,
     int? hits,
     int? areaId,
     int? teamId,
@@ -97,7 +97,7 @@ class TransectPoint {
         stone: json[TransectPointFields.stone] == 1,
         annotations: json[TransectPointFields.annotations] as String,
         created: DateTime.parse(json[TransectPointFields.created] as String),
-        mark: DateTime.parse(json[TransectPointFields.mark] as String),
+        mark: json[TransectPointFields.mark] as String,
         hits: json[TransectPointFields.hits] as int,
         areaId: json[TransectPointFields.areaId] as int,
         teamId: json[TransectPointFields.teamId] as int,
@@ -112,7 +112,7 @@ class TransectPoint {
         TransectPointFields.stone: stone! ? 1 : 0,
         TransectPointFields.annotations: annotations,
         TransectPointFields.created: created.toIso8601String(),
-        TransectPointFields.mark: mark.toIso8601String(),
+        TransectPointFields.mark: mark,
         TransectPointFields.hits: hits,
         TransectPointFields.areaId: areaId,
         TransectPointFields.teamId: teamId,

@@ -85,8 +85,8 @@ class _BodyState extends State<Body> {
   }
 
   Future initLocalDB() async {
-    measures = await TransectPointDatabase.instance.readAll();
-
+    // measures = await TransectPointDatabase.instance.readAll();
+    measures = [];
     if (measures.isEmpty) {
       measures.insert(
           0,
@@ -98,7 +98,7 @@ class _BodyState extends State<Body> {
               stone: false,
               annotations: '',
               created: DateTime.now(),
-              mark: DateTime.now(),
+              mark: '00:01:00',
               hits: 3,
               areaId: 0,
               teamId: 0));
@@ -112,7 +112,7 @@ class _BodyState extends State<Body> {
               stone: false,
               annotations: '',
               created: DateTime.now(),
-              mark: DateTime.now(),
+              mark: '00:01:00',
               hits: 3,
               areaId: 0,
               teamId: 0));
@@ -127,7 +127,7 @@ class _BodyState extends State<Body> {
               stone: false,
               annotations: '',
               created: DateTime.now(),
-              mark: DateTime.now(),
+              mark: '00:01:00',
               hits: 3,
               areaId: 0,
               teamId: 0));
@@ -141,7 +141,7 @@ class _BodyState extends State<Body> {
               stone: false,
               annotations: '',
               created: DateTime.now(),
-              mark: DateTime.now(),
+              mark: '00:01:00',
               hits: 3,
               areaId: 0,
               teamId: 0));
@@ -156,7 +156,7 @@ class _BodyState extends State<Body> {
               stone: false,
               annotations: '',
               created: DateTime.now(),
-              mark: DateTime.now(),
+              mark: '00:01:00',
               hits: 3,
               areaId: 0,
               teamId: 0));

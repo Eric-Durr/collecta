@@ -34,11 +34,7 @@ class DefaultButton extends StatelessWidget {
                 lightColorScheme.onPrimaryContainer),
             overlayColor: MaterialStateProperty.resolveWith<Color>(
               (Set<MaterialState> states) {
-                if (states.contains(MaterialState.focused) ||
-                    states.contains(MaterialState.pressed)) {
-                  return buttonColor;
-                }
-                return Colors.white; // Defer to the widget's default.
+                return Colors.white.withOpacity(0.30);
               },
             ),
           ),

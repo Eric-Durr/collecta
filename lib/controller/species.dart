@@ -45,7 +45,7 @@ Future<List<String>> getTransectSpeciesNamesLoaded(String query) async {
     final String speciesToLower = species.toLowerCase();
     final String queryToLower = query.toLowerCase();
 
-    return speciesToLower.startsWith(queryToLower);
+    return speciesToLower.contains(queryToLower);
   }).toList();
 
   return filtered;

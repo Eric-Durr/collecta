@@ -186,7 +186,7 @@ class _MeasureListState extends State<MeasureList> {
                                     ],
                                   ),
                                   Text(
-                                      'Hits: ${widget.measures[index].hits}    Time: 00:30:00')
+                                      'Hits: ${widget.measures[index].hits}    Time: ${widget.measures[index].mark}')
                                 ],
                               ),
                             ),

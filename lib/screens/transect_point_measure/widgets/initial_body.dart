@@ -47,6 +47,8 @@ class _InitialBodyState extends State<InitialBody> {
     ..text = '0';
   final TextEditingController _speciesNameController = TextEditingController()
     ..text = '';
+  final TextEditingController _transectAnnotationsController =
+      TextEditingController()..text = '';
 
   // Timer variables
   Timer? timer;
@@ -65,13 +67,6 @@ class _InitialBodyState extends State<InitialBody> {
   void dispose() {
     // TODO: implement dispose
     super.dispose();
-  }
-
-  void initPerefernces() async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    setState(() {
-      userName = sharedPreferences.getString('username') ?? '';
-    });
   }
 
   @override
@@ -96,15 +91,90 @@ class _InitialBodyState extends State<InitialBody> {
               ProgressHeader(stepTitle: headerTitle()),
               if (formStage != 'init' && formStage != 'details')
                 selectionRadioButtons()
+              else if (formStage == 'details')
+                SizedBox(height: getProportionateScreenHeight(20))
               else
                 SizedBox(height: getProportionateScreenHeight(200)),
               if (formStage == 'species' || formStage == 'nextSpecies')
                 selectionMenu()
-              else
+              else if (formStage != 'details')
                 SizedBox(height: getProportionateScreenHeight(100)),
               if (formStage == 'details')
-                Center(child: Text('form details goes here')),
-              SizedBox(height: getProportionateScreenHeight(100)),
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                              color: Colors.grey.shade400,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15))),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(15, 15, 11, 11),
+                            child: Image.asset(
+                              'assets/images/add_image.png',
+                              color: Colors.grey.shade200,
+                              width: getProportionateScreenWidth(100),
+                            ),
+                          ),
+                        ),
+                        Spacer(),
+                        Container(
+                          height: getProportionateScreenHeight(130),
+                          width: getProportionateScreenWidth(200),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Area ${widget.areaId} - point ${widget.measures.length + 1}/100',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: getProportionateScreenWidth(17)),
+                              ),
+                              Text(
+                                '${_speciesNameController.text}',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: getProportionateScreenWidth(15)),
+                              ),
+                              SizedBox(
+                                height: getProportionateScreenHeight(10),
+                              ),
+                              Text(
+                                '${_hitsController.text} HITS',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: getProportionateScreenWidth(15)),
+                              ),
+                              SizedBox(
+                                height: getProportionateScreenHeight(20),
+                              ),
+                              Container(
+                                width: getProportionateScreenWidth(200),
+                                child: Text(
+                                  '${DateTime.now().toString().substring(0, 19)}',
+                                  textAlign: TextAlign.end,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.normal,
+                                      fontSize:
+                                          getProportionateScreenWidth(12)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(
+                      height: getProportionateScreenHeight(40),
+                    ),
+                    pointAnnotationsTextField(),
+                  ],
+                ),
+              if (formStage == 'details')
+                SizedBox(height: getProportionateScreenHeight(55))
+              else
+                SizedBox(height: getProportionateScreenHeight(100)),
               if (formStage == 'init')
                 DefaultButton(
                   text: 'START',
@@ -138,6 +208,15 @@ class _InitialBodyState extends State<InitialBody> {
   }
 
   // Widget Functions
+
+  TextFormField pointAnnotationsTextField() {
+    return TextFormField(
+        keyboardType: TextInputType.multiline,
+        maxLines: 4,
+        controller: _transectAnnotationsController,
+        decoration: const InputDecoration(
+            labelText: 'Annotations', helperText: '(optional)'));
+  }
 
   Column selectionMenu() {
     return Column(
@@ -359,43 +438,62 @@ class _InitialBodyState extends State<InitialBody> {
   Row controlButtons() {
     return Row(
       children: [
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: getProportionateScreenWidth(15)),
-            child: DefaultButton(
-              text: 'BACK',
-              buttonColor: lightColorScheme.error,
-              textColor: Colors.white,
-              onPressedFunction: () {
-                setState(() {
-                  if (formStage == 'hits' || formStage == 'type') {
-                    formStage = 'init';
-                    stopTimer();
-                  } else if (formStage == 'species') {
-                    _speciesNameController.text = '';
-                    formStage = 'hits';
-                  } else if (formStage == 'details') {
-                    formStage = 'nextSpecies';
-                    if (measureType != TransectPointTypes.species) {
-                      measureType = TransectPointTypes.species;
-                      enableHitsField = true;
+        Container(
+          width: getProportionateScreenWidth(formStage == 'details' ? 80 : 150),
+          child: Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: getProportionateScreenWidth(5)),
+              child: DefaultButton(
+                text: 'BACK',
+                buttonColor: lightColorScheme.error,
+                textColor: Colors.white,
+                onPressedFunction: () {
+                  setState(() {
+                    if (formStage == 'hits' || formStage == 'type') {
+                      formStage = 'init';
+                      stopTimer();
+                    } else if (formStage == 'species') {
                       _speciesNameController.text = '';
-                      _hitsController.text = '0';
-                      enableSpeciesField = true;
+                      formStage = 'hits';
+                    } else if (formStage == 'details') {
+                      formStage = 'nextSpecies';
+                      if (measureType != TransectPointTypes.species) {
+                        measureType = TransectPointTypes.species;
+                        enableHitsField = true;
+                        _speciesNameController.text = '';
+                        _hitsController.text = '0';
+                        enableSpeciesField = true;
+                      }
+                    } else if (formStage == 'next' || formStage == 'submit') {
+                      formStage = 'details';
+                    } else if (formStage == 'nextSpecies') {
+                      formStage = 'species';
+                    } else {
+                      formStage = 'type';
                     }
-                  } else if (formStage == 'next' || formStage == 'submit') {
-                    formStage = 'details';
-                  } else if (formStage == 'nextSpecies') {
-                    formStage = 'species';
-                  } else {
-                    formStage = 'type';
-                  }
-                });
-              },
+                  });
+                },
+              ),
             ),
           ),
         ),
+        if (formStage == 'details' && widget.measures.length != 100)
+          Container(
+            width: getProportionateScreenWidth(95),
+            child: Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: getProportionateScreenWidth(2)),
+                child: DefaultButton(
+                  text: 'SUBMIT',
+                  buttonColor: Colors.blue,
+                  textColor: Colors.white,
+                  onPressedFunction: () {},
+                ),
+              ),
+            ),
+          ),
         Expanded(
           child: Padding(
             padding: EdgeInsets.symmetric(
@@ -409,7 +507,9 @@ class _InitialBodyState extends State<InitialBody> {
                   ? successContainer
                   : lightColorScheme.outline,
               textColor: Colors.white,
-              onPressedFunction: () {
+              onPressedFunction: () async {
+                SharedPreferences sharedPreferences =
+                    await SharedPreferences.getInstance();
                 setState(() {
                   if (formStage == 'details') {
                     formStage =
@@ -419,7 +519,20 @@ class _InitialBodyState extends State<InitialBody> {
                     // Submit all transect measures
                   }
                   if (formStage == 'next') {
-                    // Add point to measures and reset form
+                    widget.measures.add(TransectPoint(
+                        areaId: widget.areaId,
+                        species: _speciesNameController.text,
+                        soil: _speciesNameController.text == 'Suelo',
+                        mulch: _speciesNameController.text == 'Mantillo',
+                        stone: _speciesNameController.text == 'Piedra',
+                        rock: _speciesNameController.text == 'Roca',
+                        annotations: _transectAnnotationsController.text,
+                        created: DateTime.now(),
+                        mark: timer.toString(),
+                        hits: int.parse(_hitsController.text),
+                        teamId: int.parse(
+                            sharedPreferences.getString('projectId') ?? '0')));
+                    // execute callback update
                   }
 
                   if (formStage == 'nextSpecies') {
@@ -452,7 +565,7 @@ class _InitialBodyState extends State<InitialBody> {
           width: getProportionateScreenWidth(10),
         ),
         Text(
-          '${userName.split('_').join(' ').toUpperCase()}',
+          userName.split('_').join(' ').toUpperCase(),
           style: TextStyle(
               fontSize: getProportionateScreenWidth(14),
               fontWeight: FontWeight.bold),
@@ -602,5 +715,13 @@ class _InitialBodyState extends State<InitialBody> {
                 color: lightColorScheme.onSecondaryContainer),
           ),
         ));
+  }
+
+  // Init state methods
+  void initPerefernces() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    setState(() {
+      userName = sharedPreferences.getString('username') ?? '';
+    });
   }
 }
