@@ -18,6 +18,12 @@ class TransectFormInitialScreen extends StatelessWidget {
     return Scaffold(
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_left),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
           title: const Text('Initial Transect Form Screen'),
           automaticallyImplyLeading: true,
         ),
