@@ -35,10 +35,7 @@ class _MeasureListState extends State<MeasureList> {
   }
 
   Color getInfoColor(TransectPoint? point) {
-    if (point!.species != '') {
-      return Colors.teal;
-    }
-    if (point.mulch == true) {
+    if (point!.mulch == true) {
       return Color(0xf4adad33);
     }
     if (point.soil == true) {
@@ -49,6 +46,9 @@ class _MeasureListState extends State<MeasureList> {
     }
     if (point.stone == true) {
       return Colors.grey;
+    }
+    if (point.species != '') {
+      return Colors.teal;
     }
     return Colors.transparent;
   }
@@ -74,38 +74,49 @@ class _MeasureListState extends State<MeasureList> {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return Container(
+      padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+      margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
+      decoration:
+          BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(15))),
+      height: getProportionateScreenHeight(500),
       child: Column(
         children: [
-          Row(
-            children: <Widget>[
-              Text(
-                'TEAM MEASURE HISTORY',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontSize: getProportionateScreenWidth(14),
-                    fontWeight: FontWeight.bold),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: getProportionateScreenWidth(10)),
-                child: Container(
-                  width: getProportionateScreenWidth(90),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(width: 3, color: Colors.black),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 5),
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: <Widget>[
+                Text(
+                  'TODAY MEASURES LIST',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: getProportionateScreenWidth(14),
+                      fontWeight: FontWeight.bold),
+                ),
+                Spacer(),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: getProportionateScreenWidth(10)),
+                  child: Container(
+                    width: getProportionateScreenWidth(90),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(width: 3, color: Colors.black),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Text(
-                '${(widget.measures.length)}/100',
-                style: TextStyle(
-                    color: listNumbersColor(widget.measures.length),
-                    fontSize: getProportionateScreenWidth(15),
-                    fontWeight: FontWeight.bold),
-              ),
-            ],
+                Spacer(),
+                Text(
+                  '${(widget.measures.length)}/100',
+                  style: TextStyle(
+                      color: listNumbersColor(widget.measures.length),
+                      fontSize: getProportionateScreenWidth(15),
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ),
           widget.measures.isEmpty
               ? Text('No Transect measures yet')
@@ -155,12 +166,17 @@ class _MeasureListState extends State<MeasureList> {
                                                         15),
                                               ),
                                             ),
-                                            Text(
-                                              '${getPointName(widget.measures[index])} - Team 5',
-                                              style: TextStyle(
-                                                fontSize:
-                                                    getProportionateScreenWidth(
-                                                        14),
+                                            Container(
+                                              width:
+                                                  getProportionateScreenWidth(
+                                                      140),
+                                              child: Text(
+                                                '${getPointName(widget.measures[index])}',
+                                                style: TextStyle(
+                                                  fontSize:
+                                                      getProportionateScreenWidth(
+                                                          14),
+                                                ),
                                               ),
                                             ),
                                           ],

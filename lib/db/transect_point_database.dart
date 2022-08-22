@@ -75,6 +75,21 @@ class TransectPointDatabase {
     }
   }
 
+  Future<bool> contains(int id) async {
+    final db = await instance.database;
+    final maps = await db.query(
+      tableTransectPoint,
+      columns: TransectPointFields.values,
+      where: '${TransectPointFields.id} = ?',
+      whereArgs: [id],
+    );
+
+    if (maps.isNotEmpty) {
+      return true;
+    }
+    return false;
+  }
+
   // Read all points
   Future<List<TransectPoint>> readAll() async {
     final db = await instance.database;
@@ -101,6 +116,15 @@ class TransectPointDatabase {
       tableTransectPoint,
       where: '${TransectPointFields.id} = ?',
       whereArgs: [id],
+    );
+  }
+
+  Future<int> purge() async {
+    final db = await instance.database;
+
+    return db.delete(
+      tableTransectPoint,
+      where: '${TransectPointFields.id} > -1',
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:collecta/models/measure_area.dart';
+import 'package:collecta/models/transect_point.dart';
 import 'package:flutter/material.dart';
 import 'package:collecta/screens/transect_area_measure/widgets/body.dart';
 import 'package:collecta/size_config.dart';
@@ -30,6 +31,7 @@ class _TransectAreaScreenState extends State<TransectAreaScreen> {
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
+
     return Scaffold(
         appBar: AppBar(
           title: Text('Transect Area Screen'),

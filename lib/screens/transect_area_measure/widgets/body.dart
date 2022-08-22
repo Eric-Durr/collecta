@@ -1,5 +1,5 @@
 import 'package:collecta/controller/area.dart';
-import 'package:collecta/helpers/transect_form_args.screen.dart';
+import 'package:collecta/screens/transect_point_measure/widgets/transect_form_args.screen.dart';
 import 'package:collecta/models/measure_area.dart';
 import 'package:collecta/models/transect_point.dart';
 import 'package:collecta/widgets/custom_suffix_icon.dart';
@@ -73,6 +73,7 @@ class _BodyState extends State<Body> {
       widget.currentPosition.longitude,
       widget.zoneAreas,
     ).then((value) => closestArea = value != null ? value : null);
+
     if (widget.isOnline) {
       // onlineDB if user is connected
     } else {
@@ -85,86 +86,15 @@ class _BodyState extends State<Body> {
   }
 
   Future initLocalDB() async {
-    // measures = await TransectPointDatabase.instance.readAll();
-    measures = [];
-    if (measures.isEmpty) {
-      measures.insert(
-          0,
-          TransectPoint(
-              species: 'Rumex Lunaria',
-              soil: false,
-              mulch: false,
-              rock: false,
-              stone: false,
-              annotations: '',
-              created: DateTime.now(),
-              mark: '00:01:00',
-              hits: 3,
-              areaId: 0,
-              teamId: 0));
-      measures.insert(
-          1,
-          TransectPoint(
-              species: 'Rumex Lunaria',
-              soil: false,
-              mulch: false,
-              rock: false,
-              stone: false,
-              annotations: '',
-              created: DateTime.now(),
-              mark: '00:01:00',
-              hits: 3,
-              areaId: 0,
-              teamId: 0));
+    measures = await TransectPointDatabase.instance.readAll();
 
-      measures.insert(
-          2,
-          TransectPoint(
-              species: 'Rumex Lunaria',
-              soil: false,
-              mulch: false,
-              rock: false,
-              stone: false,
-              annotations: '',
-              created: DateTime.now(),
-              mark: '00:01:00',
-              hits: 3,
-              areaId: 0,
-              teamId: 0));
-      measures.insert(
-          3,
-          TransectPoint(
-              species: 'Rumex Lunaria',
-              soil: false,
-              mulch: false,
-              rock: false,
-              stone: false,
-              annotations: '',
-              created: DateTime.now(),
-              mark: '00:01:00',
-              hits: 3,
-              areaId: 0,
-              teamId: 0));
-
-      measures.insert(
-          4,
-          TransectPoint(
-              species: 'Rumex Lunaria',
-              soil: false,
-              mulch: false,
-              rock: false,
-              stone: false,
-              annotations: '',
-              created: DateTime.now(),
-              mark: '00:01:00',
-              hits: 3,
-              areaId: 0,
-              teamId: 0));
+    if (measures.isNotEmpty) {
+      if (measures.last.created.day != DateTime.now().day &&
+          measures.last.created.month != DateTime.now().month) {
+        TransectPointDatabase.instance.purge();
+        measures = [];
+      }
     }
-    measures[1] = measures[0].copy(species: '', mulch: true, hits: 1);
-    measures[2] = measures[0].copy(species: '', soil: true, hits: 1);
-    measures[3] = measures[0].copy(species: '', stone: true, hits: 1);
-    measures[4] = measures[0].copy(species: '', rock: true, hits: 1);
   }
 
   _determinePosition() async {
@@ -208,141 +138,160 @@ class _BodyState extends State<Body> {
         child: Padding(
           padding:
               EdgeInsets.symmetric(horizontal: getProportionateScreenWidth(10)),
-          child: Column(children: [
-            SizedBox(height: SizeConfig.screenHeight * 0.04),
-            if (isBussy)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(
-                  color: lightColorScheme.primaryContainer,
+          child: SingleChildScrollView(
+            child: Column(children: [
+              SizedBox(height: SizeConfig.screenHeight * 0.04),
+              if (isBussy)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(
+                    color: lightColorScheme.primaryContainer,
+                  ),
                 ),
-              ),
-            if (!isBussy)
-              closestArea == null
-                  ? SizedBox(
-                      width: getProportionateScreenWidth(200),
-                      child: DefaultButton(
-                        text: '+ Add new area',
-                        onPressedFunction: () async {
-                          await showInformationDialog(context);
-                        },
-                        buttonColor: lightColorScheme.surfaceVariant,
+              if (!isBussy)
+                closestArea == null
+                    ? SizedBox(
+                        width: getProportionateScreenWidth(200),
+                        child: DefaultButton(
+                          text: '+ Add new area',
+                          onPressedFunction: () async {
+                            await showInformationDialog(context);
+                          },
+                          buttonColor: lightColorScheme.surfaceVariant,
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Text(
+                            'Area ${closestArea!.id}',
+                            style: TextStyle(
+                                fontSize: getProportionateScreenWidth(18),
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
-                    )
-                  : Row(
+              if (isReloadBussy)
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: LinearProgressIndicator(),
+                ),
+              SizedBox(height: getProportionateScreenHeight(14)),
+              Card(
+                elevation: 0,
+                color: lightColorScheme.primaryContainer,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Text(
-                          'Area ${closestArea!.id}',
-                          style: TextStyle(
-                              fontSize: getProportionateScreenWidth(18),
-                              fontWeight: FontWeight.bold),
+                      children: <Widget>[
+                        if (isBussy) const CircularProgressIndicator(),
+                        if (!isBussy && !locationFail)
+                          Text(
+                            'Latitude: ${widget.currentPosition.latitude.toStringAsPrecision(8)}, Longitude: ${widget.currentPosition.longitude.toStringAsPrecision(8)}',
+                            style: TextStyle(
+                                color: lightColorScheme.onPrimaryContainer,
+                                fontSize: getProportionateScreenWidth(12),
+                                fontWeight: FontWeight.bold),
+                          )
+                        else
+                          Text(
+                            'Retry location load',
+                            style: TextStyle(
+                                color: lightColorScheme.onPrimaryContainer,
+                                fontSize: getProportionateScreenWidth(12),
+                                fontWeight: FontWeight.bold),
+                          ),
+                        FormError(errors: errors),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(6, 0, 0, 0),
+                          child: OutlinedButton(
+                            onPressed: () async {
+                              setState(() {
+                                isReloadBussy = true;
+                              });
+                              await _determinePosition();
+                              widget.updatePositionCallback(
+                                  widget.currentPosition);
+
+                              SharedPreferences sharedPreferences =
+                                  await SharedPreferences.getInstance();
+
+                              await updateClosestArea(sharedPreferences);
+
+                              // update data
+
+                              setState(() {
+                                isReloadBussy = false;
+                              });
+                            },
+                            child: const Icon(
+                              Icons.replay_outlined,
+                              color: Colors.black,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-            if (isReloadBussy)
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: LinearProgressIndicator(),
-              ),
-            SizedBox(height: getProportionateScreenHeight(14)),
-            Card(
-              elevation: 0,
-              color: lightColorScheme.primaryContainer,
-              child: SizedBox(
-                width: double.infinity,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      if (isBussy) const CircularProgressIndicator(),
-                      if (!isBussy && !locationFail)
-                        Text(
-                          'Latitude: ${widget.currentPosition.latitude.toStringAsPrecision(8)}, Longitude: ${widget.currentPosition.longitude.toStringAsPrecision(8)}',
-                          style: TextStyle(
-                              color: lightColorScheme.onPrimaryContainer,
-                              fontSize: getProportionateScreenWidth(12),
-                              fontWeight: FontWeight.bold),
-                        )
-                      else
-                        Text(
-                          'Retry location load',
-                          style: TextStyle(
-                              color: lightColorScheme.onPrimaryContainer,
-                              fontSize: getProportionateScreenWidth(12),
-                              fontWeight: FontWeight.bold),
-                        ),
-                      FormError(errors: errors),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(6, 0, 0, 0),
-                        child: OutlinedButton(
-                          onPressed: () async {
-                            setState(() {
-                              isReloadBussy = true;
-                            });
-                            await _determinePosition();
-                            widget
-                                .updatePositionCallback(widget.currentPosition);
-
-                            SharedPreferences sharedPreferences =
-                                await SharedPreferences.getInstance();
-
-                            await updateClosestArea(sharedPreferences);
-
-                            // update data
-
-                            setState(() {
-                              isReloadBussy = false;
-                            });
-                          },
-                          child: const Icon(
-                            Icons.replay_outlined,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: getProportionateScreenHeight(24)),
-            if (closestArea != null)
-              Column(
-                children: [
-                  FloatingActionButton(
-                    backgroundColor: Colors.black,
-                    splashColor: Colors.white.withOpacity(0.5),
-                    tooltip: 'Add area measure in current location',
-                    child: const Icon(
-                      Icons.add,
-                      size: 30,
+              SizedBox(height: getProportionateScreenHeight(20)),
+              if (closestArea != null)
+                Column(
+                  children: [
+                    FloatingActionButton(
+                      backgroundColor: Colors.black,
+                      splashColor: Colors.white.withOpacity(0.5),
+                      tooltip: 'Add area measure in current location',
+                      child: const Icon(
+                        Icons.add,
+                        size: 30,
+                      ),
+                      onPressed: () async {
+                        List<TransectPoint> newMeasures =
+                            await Navigator.pushNamed(
+                                context, TransectFormInitialScreen.routeName,
+                                arguments: TransectArguments(
+                                  measures: measures,
+                                  areaId: closestArea!.id,
+                                )) as List<TransectPoint>;
+                        for (var measure in newMeasures) {
+                          if (await TransectPointDatabase.instance
+                                  .contains(measure.id ?? -1) ==
+                              false) {
+                            await TransectPointDatabase.instance
+                                .create(measure);
+                          }
+                        }
+
+                        setState(() {
+                          updateMeasure();
+                        });
+                      },
                     ),
-                    onPressed: () {
-                      Navigator.pushNamed(
-                          context, TransectFormInitialScreen.routeName,
-                          arguments: TransectArguments(
-                            measures: measures,
-                            areaId: closestArea!.id,
-                          ));
-                    },
-                  ),
-                  SizedBox(height: getProportionateScreenHeight(5)),
-                  const Text('Add area measure'),
-                ],
-              ),
-            SizedBox(height: getProportionateScreenHeight(40)),
-            isBussy
-                ? const CircularProgressIndicator()
-                : MeasureList(
-                    measures: measures,
-                  ),
-          ]),
+                    SizedBox(height: getProportionateScreenHeight(5)),
+                    const Text('Add area measure'),
+                  ],
+                ),
+              SizedBox(height: getProportionateScreenHeight(10)),
+              isBussy
+                  ? const CircularProgressIndicator()
+                  : MeasureList(
+                      measures: measures,
+                    ),
+            ]),
+          ),
         ),
       ),
     );
+  }
+
+  updateMeasure() async {
+    measures = await TransectPointDatabase.instance.readAll();
   }
 
   Future<void> updateClosestArea(SharedPreferences sharedPreferences) async {

@@ -16,14 +16,16 @@ import 'progress_header.dart';
 enum TransectPointTypes { species, mulch, soil, stone, rock }
 
 class InitialBody extends StatefulWidget {
-  const InitialBody({
-    Key? key,
-    required this.areaId,
-    required this.measures,
-  }) : super(key: key);
+  InitialBody(
+      {Key? key,
+      required this.areaId,
+      required this.measures,
+      required this.updateMeasuresCallback})
+      : super(key: key);
 
   final List<TransectPoint> measures;
   final int areaId;
+  Function(List<TransectPoint>) updateMeasuresCallback;
 
   @override
   State<InitialBody> createState() => _InitialBodyState();
@@ -661,10 +663,9 @@ class _InitialBodyState extends State<InitialBody> {
                     _transectAnnotationsController.text = '';
                     measureType = TransectPointTypes.species;
                     stopTimer();
-
                     resetTimer();
                     formStage = 'init';
-                    // execute callback update
+                    widget.updateMeasuresCallback(widget.measures);
                   }
 
                   if (formStage == 'nextSpecies') {
