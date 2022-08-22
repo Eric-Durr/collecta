@@ -1,17 +1,13 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:collecta/constants.dart';
 import 'package:collecta/controller/species.dart';
 import 'package:collecta/db/transect_point_database.dart';
-import 'package:collecta/main.dart';
 import 'package:collecta/models/transect_point.dart';
 import 'package:collecta/size_config.dart';
-import 'package:collecta/widgets/custom_suffix_icon.dart';
 import 'package:collecta/widgets/deffault_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
 
@@ -38,6 +34,8 @@ class _InitialBodyState extends State<InitialBody> {
   String userName = '';
   TransectPointTypes measureType = TransectPointTypes.species;
 
+  int dummy = 0;
+
   bool enableHitsField = true;
   bool enableSpeciesField = true;
   late TransectPoint currentPoint;
@@ -53,6 +51,7 @@ class _InitialBodyState extends State<InitialBody> {
   // Timer variables
   Timer? timer;
   Duration duration = const Duration();
+  String markString = '';
 
   @override
   void initState() {
@@ -72,14 +71,13 @@ class _InitialBodyState extends State<InitialBody> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: SingleChildScrollView(
-        child: SizedBox(
-          width: double.infinity,
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: getProportionateScreenWidth(20)),
+      child: SizedBox(
+        width: double.infinity,
+        child: Padding(
+          padding:
+              EdgeInsets.symmetric(horizontal: getProportionateScreenWidth(20)),
+          child: SingleChildScrollView(
             child: Column(children: [
-              Text(formStage),
               Text(
                 'AREA ${widget.areaId} - POINT ${widget.measures.length + 1}',
                 style: TextStyle(
@@ -93,86 +91,19 @@ class _InitialBodyState extends State<InitialBody> {
                 selectionRadioButtons()
               else if (formStage == 'details')
                 SizedBox(height: getProportionateScreenHeight(20))
+              else if (formStage == 'init')
+                measuresOverview()
               else
                 SizedBox(height: getProportionateScreenHeight(200)),
               if (formStage == 'species' || formStage == 'nextSpecies')
                 selectionMenu()
               else if (formStage != 'details')
                 SizedBox(height: getProportionateScreenHeight(100)),
-              if (formStage == 'details')
-                Column(
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                              color: Colors.grey.shade400,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(15))),
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(15, 15, 11, 11),
-                            child: Image.asset(
-                              'assets/images/add_image.png',
-                              color: Colors.grey.shade200,
-                              width: getProportionateScreenWidth(100),
-                            ),
-                          ),
-                        ),
-                        Spacer(),
-                        Container(
-                          height: getProportionateScreenHeight(130),
-                          width: getProportionateScreenWidth(200),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Area ${widget.areaId} - point ${widget.measures.length + 1}/100',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: getProportionateScreenWidth(17)),
-                              ),
-                              Text(
-                                '${_speciesNameController.text}',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: getProportionateScreenWidth(15)),
-                              ),
-                              SizedBox(
-                                height: getProportionateScreenHeight(10),
-                              ),
-                              Text(
-                                '${_hitsController.text} HITS',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: getProportionateScreenWidth(15)),
-                              ),
-                              SizedBox(
-                                height: getProportionateScreenHeight(20),
-                              ),
-                              Container(
-                                width: getProportionateScreenWidth(200),
-                                child: Text(
-                                  '${DateTime.now().toString().substring(0, 19)}',
-                                  textAlign: TextAlign.end,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.normal,
-                                      fontSize:
-                                          getProportionateScreenWidth(12)),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                    SizedBox(
-                      height: getProportionateScreenHeight(40),
-                    ),
-                    pointAnnotationsTextField(),
-                  ],
-                ),
+              if (formStage == 'details') detailsBoard(),
               if (formStage == 'details')
                 SizedBox(height: getProportionateScreenHeight(55))
+              else if (formStage == 'init')
+                SizedBox(height: getProportionateScreenHeight(0))
               else
                 SizedBox(height: getProportionateScreenHeight(100)),
               if (formStage == 'init')
@@ -207,7 +138,202 @@ class _InitialBodyState extends State<InitialBody> {
     );
   }
 
-  // Widget Functions
+  ///////////////// Widget Functions
+
+  Container measuresOverview() {
+    return Container(
+      padding: EdgeInsets.all(0),
+      margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
+      decoration:
+          BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(15))),
+      height: getProportionateScreenHeight(320),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: ListView.builder(
+              scrollDirection: Axis.vertical,
+              itemCount: 100,
+              itemBuilder: (context, index) {
+                // Point measure card
+                return Card(
+                  elevation: 0,
+                  margin: EdgeInsets.fromLTRB(
+                      0,
+                      getProportionateScreenHeight(0),
+                      0,
+                      getProportionateScreenWidth(0)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Radio(
+                        overlayColor: MaterialStateProperty.all<Color?>(
+                            index < widget.measures.length
+                                ? Colors.grey
+                                : index == widget.measures.length
+                                    ? Colors.blue
+                                    : Colors.black),
+                        fillColor: MaterialStateProperty.all<Color?>(
+                            index < widget.measures.length
+                                ? Colors.grey
+                                : index == widget.measures.length
+                                    ? Colors.blue
+                                    : Colors.black),
+                        value: dummy,
+                        groupValue: measureType,
+                        onChanged: (value) {},
+                      ),
+                      Text(
+                        'Point ${index + 1}/100',
+                        style: TextStyle(
+                            fontWeight: widget.measures.length <= index
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: widget.measures.length <= index
+                                ? Colors.black
+                                : Colors.grey),
+                      ),
+                      Spacer(),
+                      Text(
+                        '${index < widget.measures.length ? widget.measures[index].species!.length > 15 ? widget.measures[index].species!.substring(0, 15) + '...' : widget.measures[index].species : ''}',
+                        style: TextStyle(
+                            fontWeight: widget.measures.length <= index
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: widget.measures.length <= index
+                                ? Colors.black
+                                : Colors.grey),
+                      ),
+                      Spacer(),
+                      Text(
+                        '${index < widget.measures.length ? widget.measures[index].mark : ''}',
+                        style: TextStyle(
+                            fontWeight: widget.measures.length <= index
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: widget.measures.length <= index
+                                ? Colors.black
+                                : Colors.grey),
+                      )
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          SizedBox(
+            height: getProportionateScreenHeight(10),
+          ),
+          Center(
+            child: Text(
+              'Measures for date: ${DateTime.now().toString().substring(0, 10)}',
+              style: TextStyle(fontSize: getProportionateScreenWidth(18)),
+            ),
+          ),
+          SizedBox(
+            height: getProportionateScreenHeight(10),
+          ),
+          Center(
+            child: Text(
+              '${widget.measures.length}% point completed',
+              style: TextStyle(
+                  color: widget.measures.length < 25
+                      ? Colors.red
+                      : widget.measures.length < 75
+                          ? Colors.orange
+                          : successContainer,
+                  fontSize: getProportionateScreenWidth(18)),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Column detailsBoard() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.all(Radius.circular(15))),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(15, 15, 11, 11),
+                child: Image.asset(
+                  'assets/images/add_image.png',
+                  color: Colors.grey.shade200,
+                  width: getProportionateScreenWidth(70),
+                ),
+              ),
+            ),
+            Spacer(),
+            Container(
+              height: getProportionateScreenHeight(130),
+              width: getProportionateScreenWidth(220),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Area ${widget.areaId}',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: getProportionateScreenWidth(17)),
+                  ),
+                  Text(
+                    'point ${widget.measures.length + 1}/100',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: getProportionateScreenWidth(13)),
+                  ),
+                  Text(
+                    '${_speciesNameController.text}',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: getProportionateScreenWidth(
+                            _speciesNameController.text.length >= 30
+                                ? 11
+                                : _speciesNameController.text.length >= 15 &&
+                                        _speciesNameController.text.length < 30
+                                    ? 13
+                                    : 14)),
+                  ),
+                  SizedBox(
+                    height: getProportionateScreenHeight(5),
+                  ),
+                  Text(
+                    '${_hitsController.text} HITS',
+                    style: TextStyle(
+                        fontWeight: FontWeight.normal,
+                        fontSize: getProportionateScreenWidth(13)),
+                  ),
+                  SizedBox(
+                    height: getProportionateScreenHeight(10),
+                  ),
+                  Container(
+                    width: getProportionateScreenWidth(200),
+                    child: Text(
+                      '${DateTime.now().toString().substring(0, 19)}',
+                      textAlign: TextAlign.end,
+                      style: TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: getProportionateScreenWidth(12)),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+        SizedBox(
+          height: getProportionateScreenHeight(40),
+        ),
+        pointAnnotationsTextField(),
+      ],
+    );
+  }
 
   TextFormField pointAnnotationsTextField() {
     return TextFormField(
@@ -440,57 +566,53 @@ class _InitialBodyState extends State<InitialBody> {
       children: [
         Container(
           width: getProportionateScreenWidth(formStage == 'details' ? 80 : 150),
-          child: Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: getProportionateScreenWidth(5)),
-              child: DefaultButton(
-                text: 'BACK',
-                buttonColor: lightColorScheme.error,
-                textColor: Colors.white,
-                onPressedFunction: () {
-                  setState(() {
-                    if (formStage == 'hits' || formStage == 'type') {
-                      formStage = 'init';
-                      stopTimer();
-                    } else if (formStage == 'species') {
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: getProportionateScreenWidth(5)),
+            child: DefaultButton(
+              text: 'BACK',
+              buttonColor: lightColorScheme.error,
+              textColor: Colors.white,
+              onPressedFunction: () {
+                setState(() {
+                  if (formStage == 'hits' || formStage == 'type') {
+                    formStage = 'init';
+                    stopTimer();
+                  } else if (formStage == 'species') {
+                    _speciesNameController.text = '';
+                    formStage = 'hits';
+                  } else if (formStage == 'details') {
+                    formStage = 'nextSpecies';
+                    if (measureType != TransectPointTypes.species) {
+                      measureType = TransectPointTypes.species;
+                      enableHitsField = true;
                       _speciesNameController.text = '';
-                      formStage = 'hits';
-                    } else if (formStage == 'details') {
-                      formStage = 'nextSpecies';
-                      if (measureType != TransectPointTypes.species) {
-                        measureType = TransectPointTypes.species;
-                        enableHitsField = true;
-                        _speciesNameController.text = '';
-                        _hitsController.text = '0';
-                        enableSpeciesField = true;
-                      }
-                    } else if (formStage == 'next' || formStage == 'submit') {
-                      formStage = 'details';
-                    } else if (formStage == 'nextSpecies') {
-                      formStage = 'species';
-                    } else {
-                      formStage = 'type';
+                      _hitsController.text = '0';
+                      enableSpeciesField = true;
                     }
-                  });
-                },
-              ),
+                  } else if (formStage == 'next' || formStage == 'submit') {
+                    formStage = 'details';
+                  } else if (formStage == 'nextSpecies') {
+                    formStage = 'species';
+                  } else {
+                    formStage = 'type';
+                  }
+                });
+              },
             ),
           ),
         ),
         if (formStage == 'details' && widget.measures.length != 100)
           Container(
             width: getProportionateScreenWidth(95),
-            child: Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: getProportionateScreenWidth(2)),
-                child: DefaultButton(
-                  text: 'SUBMIT',
-                  buttonColor: Colors.blue,
-                  textColor: Colors.white,
-                  onPressedFunction: () {},
-                ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: getProportionateScreenWidth(2)),
+              child: DefaultButton(
+                text: 'SUBMIT',
+                buttonColor: Colors.blue,
+                textColor: Colors.white,
+                onPressedFunction: () {},
               ),
             ),
           ),
@@ -528,10 +650,20 @@ class _InitialBodyState extends State<InitialBody> {
                         rock: _speciesNameController.text == 'Roca',
                         annotations: _transectAnnotationsController.text,
                         created: DateTime.now(),
-                        mark: timer.toString(),
+                        mark: markString,
                         hits: int.parse(_hitsController.text),
                         teamId: int.parse(
                             sharedPreferences.getString('projectId') ?? '0')));
+                    _hitsController.text = '0';
+                    enableHitsField = true;
+                    enableSpeciesField = true;
+                    _speciesNameController.text = '';
+                    _transectAnnotationsController.text = '';
+                    measureType = TransectPointTypes.species;
+                    stopTimer();
+
+                    resetTimer();
+                    formStage = 'init';
                     // execute callback update
                   }
 
@@ -702,6 +834,9 @@ class _InitialBodyState extends State<InitialBody> {
     final hours = twoDigits(duration.inHours.remainder(60));
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
+    setState(() {
+      markString = '$hours:$minutes:$seconds';
+    });
     return Card(
         color: lightColorScheme.secondaryContainer,
         margin:
