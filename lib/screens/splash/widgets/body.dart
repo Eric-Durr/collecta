@@ -26,17 +26,6 @@ class _BodyState extends State<Body> {
               SizedBox(height: getProportionateScreenHeight(40)),
               LoginForm(),
               SizedBox(height: getProportionateScreenHeight(40)),
-              GestureDetector(
-                onTap: () {}, // Go to account request page
-                child: Text(
-                  'Request Account',
-                  style: TextStyle(
-                      color: lightColorScheme.secondary,
-                      fontSize: getProportionateScreenWidth(20),
-                      fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.underline),
-                ),
-              ),
               SizedBox(height: SizeConfig.screenHeight * 0.04),
             ]),
           ),

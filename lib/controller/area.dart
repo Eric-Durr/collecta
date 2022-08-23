@@ -14,18 +14,26 @@ Future<List<MeasureArea>> getZoneAreas(
   var jsonResponse = null;
   int zone = lonLatToUTMZone(lon, lat);
   var response = await http
-      .get(Uri.parse('$API_SERVER:$API_PORT/api/areas/in-zone?zone=$zone'));
+      .get(Uri.parse('$API_SERVER:$API_PORT/api/areas/in-zone?zone=$zone'))
+      .catchError((e) {
+    throw e;
+  });
   jsonResponse = await json.decode(response.body);
+  if (response.statusCode == 200) {
+    if (jsonResponse['areas'] != null) {
+      List<MeasureArea> areas = [];
 
-  if (jsonResponse['areas'] != null) {
-    List<MeasureArea> areas = [];
-
-    jsonResponse['areas'].forEach((area) {
-      if (area['proyecto'].toString() == projectId)
-        areas.add(MeasureArea.fromJSON(area));
-    });
-    return areas;
+      jsonResponse['areas'].forEach((area) {
+        if (area['proyecto'].toString() == projectId) {
+          areas.add(MeasureArea.fromJSON(area));
+        }
+      });
+      return areas;
+    } else {
+      return [];
+    }
   } else {
+    print(response.body);
     return [];
   }
 }

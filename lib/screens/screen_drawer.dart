@@ -191,20 +191,29 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
                 ),
               ],
             ),
-            body: <Widget>[
-              InsightsScreen(location: _currentPosition, zoneAreas: areas),
-              TransectAreaScreen(
-                zoneAreas: areas,
-                isOnline: isOnline,
-                currentPosition: _currentPosition,
-                updatePositionCallback: updatePositionCallback,
-                updateAreasCallback: updateAreasCallback,
-              ),
-              TeamProfileScreen(
-                username: sharedPreferences.getString('username'),
-                hasConnection: isOnline,
-              ),
-            ][currentPageIndex],
+            body: GestureDetector(
+              onTap: () {
+                FocusScopeNode currentFocus = FocusScope.of(context);
+
+                if (!currentFocus.hasPrimaryFocus) {
+                  currentFocus.unfocus();
+                }
+              },
+              child: <Widget>[
+                InsightsScreen(location: _currentPosition, zoneAreas: areas),
+                TransectAreaScreen(
+                  zoneAreas: areas,
+                  isOnline: isOnline,
+                  currentPosition: _currentPosition,
+                  updatePositionCallback: updatePositionCallback,
+                  updateAreasCallback: updateAreasCallback,
+                ),
+                TeamProfileScreen(
+                  username: sharedPreferences.getString('username'),
+                  hasConnection: isOnline,
+                ),
+              ][currentPageIndex],
+            ),
           );
   }
 
@@ -260,7 +269,18 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
   getAndParseAreas() async {
     await getZoneAreas(_currentPosition.latitude, _currentPosition.longitude,
             sharedPreferences.getString('projectId'))
-        .then((value) => areas = value);
+        .then((value) => areas = value)
+        .catchError((e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        dismissDirection: DismissDirection.down,
+        duration: const Duration(seconds: 20),
+        backgroundColor: lightColorScheme.errorContainer,
+        content: Text(
+          e.toString(),
+          style: TextStyle(color: lightColorScheme.onErrorContainer),
+        ),
+      ));
+    });
   }
 
   getSpecies() async {

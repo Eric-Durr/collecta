@@ -7,8 +7,8 @@ import 'package:collecta/size_config.dart';
 import 'package:flutter_map/plugin_api.dart';
 
 class MeasureList extends StatefulWidget {
-  final List<TransectPoint> measures;
-  const MeasureList({
+  List<TransectPoint> measures;
+  MeasureList({
     Key? key,
     required this.measures,
   }) : super(key: key);
@@ -18,19 +18,12 @@ class MeasureList extends StatefulWidget {
 }
 
 class _MeasureListState extends State<MeasureList> {
-  Color listNumbersColor(int length) {
-    if (length <= 25) {
-      return lightColorScheme.error;
-    } else if (length > 25 && length < 100) {
-      return Colors.yellow;
-    } else {
-      return Colors.green;
-    }
-  }
-
   @override
   void initState() {
     // TODO: implement initState
+    setState(() {
+      widget.measures.sort((a, b) => a.created.compareTo(b.created));
+    });
     super.initState();
   }
 
@@ -82,42 +75,6 @@ class _MeasureListState extends State<MeasureList> {
       height: getProportionateScreenHeight(500),
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 0, 10, 5),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              children: <Widget>[
-                Text(
-                  'TODAY MEASURES LIST',
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: getProportionateScreenWidth(14),
-                      fontWeight: FontWeight.bold),
-                ),
-                Spacer(),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: getProportionateScreenWidth(10)),
-                  child: Container(
-                    width: getProportionateScreenWidth(90),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(width: 3, color: Colors.black),
-                      ),
-                    ),
-                  ),
-                ),
-                Spacer(),
-                Text(
-                  '${(widget.measures.length)}/100',
-                  style: TextStyle(
-                      color: listNumbersColor(widget.measures.length),
-                      fontSize: getProportionateScreenWidth(15),
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
           widget.measures.isEmpty
               ? Text('No Transect measures yet')
               : Expanded(
@@ -158,14 +115,6 @@ class _MeasureListState extends State<MeasureList> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              'Area ${widget.measures[index].areaId} - Point ${index + 1}/100',
-                                              style: TextStyle(
-                                                fontSize:
-                                                    getProportionateScreenWidth(
-                                                        15),
-                                              ),
-                                            ),
                                             Container(
                                               width:
                                                   getProportionateScreenWidth(
@@ -175,7 +124,28 @@ class _MeasureListState extends State<MeasureList> {
                                                 style: TextStyle(
                                                   fontSize:
                                                       getProportionateScreenWidth(
-                                                          14),
+                                                          15),
+                                                ),
+                                              ),
+                                            ),
+                                            Text(
+                                              'Point ${index + 1}/100',
+                                              style: TextStyle(
+                                                fontSize:
+                                                    getProportionateScreenWidth(
+                                                        13),
+                                              ),
+                                            ),
+                                            Container(
+                                              width:
+                                                  getProportionateScreenWidth(
+                                                      140),
+                                              child: Text(
+                                                'Area ${widget.measures[index].areaId}',
+                                                style: TextStyle(
+                                                  fontSize:
+                                                      getProportionateScreenWidth(
+                                                          12),
                                                 ),
                                               ),
                                             ),
@@ -202,7 +172,7 @@ class _MeasureListState extends State<MeasureList> {
                                     ],
                                   ),
                                   Text(
-                                      'Hits: ${widget.measures[index].hits}    Time: ${widget.measures[index].mark}')
+                                      'HITS: ${widget.measures[index].hits}    Time: ${widget.measures[index].mark}')
                                 ],
                               ),
                             ),

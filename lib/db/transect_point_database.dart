@@ -98,6 +98,19 @@ class TransectPointDatabase {
     return result.map((e) => TransectPoint.fromJSON(e)).toList();
   }
 
+  // Read all points
+  Future<List<TransectPoint>> readByArea(int areaId) async {
+    final db = await instance.database;
+    final result = await db.query(
+      tableTransectPoint,
+      columns: TransectPointFields.values,
+      where: '${TransectPointFields.areaId} = ?',
+      whereArgs: [areaId],
+    );
+
+    return result.map((e) => TransectPoint.fromJSON(e)).toList();
+  }
+
   Future<int> update(TransectPoint measureArea) async {
     final db = await instance.database;
 

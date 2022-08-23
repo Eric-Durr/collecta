@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:collecta/controller/area.dart';
 import 'package:collecta/screens/transect_point_measure/widgets/transect_form_args.screen.dart';
 import 'package:collecta/models/measure_area.dart';
@@ -40,6 +42,7 @@ class _BodyState extends State<Body> {
   // status handlers
   bool isBussy = false;
   bool isReloadBussy = false;
+  bool onlyThisArea = true;
   bool locationFail = false;
   final List<String> errors = [];
 
@@ -72,13 +75,12 @@ class _BodyState extends State<Body> {
       widget.currentPosition.latitude,
       widget.currentPosition.longitude,
       widget.zoneAreas,
-    ).then((value) => closestArea = value != null ? value : null);
+    ).then((value) => closestArea = (value != null) ? value : null);
 
     if (widget.isOnline) {
       // onlineDB if user is connected
-    } else {
-      await initLocalDB();
     }
+    await initLocalDB();
 
     setState(() {
       isBussy = false;
@@ -86,7 +88,16 @@ class _BodyState extends State<Body> {
   }
 
   Future initLocalDB() async {
-    measures = await TransectPointDatabase.instance.readAll();
+    if (closestArea == null) {
+      measures = [];
+    } else {
+      if (onlyThisArea) {
+        measures = await TransectPointDatabase.instance
+            .readByArea(closestArea?.id ?? -1);
+      } else {
+        measures = await TransectPointDatabase.instance.readAll();
+      }
+    }
 
     if (measures.isNotEmpty) {
       if (measures.last.created.day != DateTime.now().day &&
@@ -156,6 +167,7 @@ class _BodyState extends State<Body> {
                           text: '+ Add new area',
                           onPressedFunction: () async {
                             await showInformationDialog(context);
+                            await initLocalDB();
                           },
                           buttonColor: lightColorScheme.surfaceVariant,
                         ),
@@ -223,7 +235,7 @@ class _BodyState extends State<Body> {
                               await updateClosestArea(sharedPreferences);
 
                               // update data
-
+                              await initLocalDB();
                               setState(() {
                                 isReloadBussy = false;
                               });
@@ -278,16 +290,85 @@ class _BodyState extends State<Body> {
                   ],
                 ),
               SizedBox(height: getProportionateScreenHeight(10)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 5),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: <Widget>[
+                    Text(
+                      onlyThisArea
+                          ? 'TODAY MEASURES LIST'
+                          : 'TEAM MEASURES HISTORY',
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: getProportionateScreenWidth(14),
+                          fontWeight: FontWeight.bold),
+                    ),
+                    Expanded(
+                      child: Container(
+                        margin: EdgeInsets.fromLTRB(
+                            getProportionateScreenWidth(10),
+                            0,
+                            getProportionateScreenWidth(10),
+                            0),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(width: 3, color: Colors.black),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (onlyThisArea)
+                      Text(
+                        '${(measures.length)}/100',
+                        style: TextStyle(
+                            color: listNumbersColor(measures.length),
+                            fontSize: getProportionateScreenWidth(15),
+                            fontWeight: FontWeight.bold),
+                      ),
+                  ],
+                ),
+              ),
+              CheckboxListTile(
+                title: const Text("Show only this area"),
+                value: onlyThisArea,
+                onChanged: (newValue) async {
+                  if (!isBussy) {
+                    setState(() {
+                      isBussy = true;
+                      onlyThisArea = newValue ?? false;
+                    });
+
+                    await initLocalDB();
+                    setState(() {
+                      isBussy = false;
+                    });
+                  }
+                },
+                controlAffinity:
+                    ListTileControlAffinity.leading, //  <-- leading Checkbox
+              ),
               isBussy
                   ? const CircularProgressIndicator()
                   : MeasureList(
                       measures: measures,
                     ),
+              SizedBox(height: getProportionateScreenHeight(50)),
             ]),
           ),
         ),
       ),
     );
+  }
+
+  Color listNumbersColor(int length) {
+    if (length <= 25) {
+      return lightColorScheme.error;
+    } else if (length > 25 && length < 100) {
+      return Colors.yellow;
+    } else {
+      return Colors.green;
+    }
   }
 
   updateMeasure() async {

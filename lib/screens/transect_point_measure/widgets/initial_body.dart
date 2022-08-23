@@ -73,67 +73,80 @@ class _InitialBodyState extends State<InitialBody> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: SizedBox(
-        width: double.infinity,
-        child: Padding(
-          padding:
-              EdgeInsets.symmetric(horizontal: getProportionateScreenWidth(20)),
-          child: SingleChildScrollView(
-            child: Column(children: [
-              Text(
-                'AREA ${widget.areaId} - POINT ${widget.measures.length + 1}',
-                style: TextStyle(
-                    fontSize: getProportionateScreenWidth(18),
-                    fontWeight: FontWeight.bold),
-              ),
-              pageHeader(),
-              SizedBox(height: getProportionateScreenHeight(20)),
-              ProgressHeader(stepTitle: headerTitle()),
-              if (formStage != 'init' && formStage != 'details')
-                selectionRadioButtons()
-              else if (formStage == 'details')
-                SizedBox(height: getProportionateScreenHeight(20))
-              else if (formStage == 'init')
-                measuresOverview()
-              else
-                SizedBox(height: getProportionateScreenHeight(200)),
-              if (formStage == 'species' || formStage == 'nextSpecies')
-                selectionMenu()
-              else if (formStage != 'details')
-                SizedBox(height: getProportionateScreenHeight(100)),
-              if (formStage == 'details') detailsBoard(),
-              if (formStage == 'details')
-                SizedBox(height: getProportionateScreenHeight(55))
-              else if (formStage == 'init')
-                SizedBox(height: getProportionateScreenHeight(0))
-              else
-                SizedBox(height: getProportionateScreenHeight(100)),
-              if (formStage == 'init')
-                DefaultButton(
-                  text: 'START',
-                  buttonColor: successContainer,
-                  textColor: Colors.white,
-                  onPressedFunction: () {
-                    startTimer();
-                    setState(() {
-                      formStage = 'hits';
-                    });
-                  },
-                )
-              else
-                controlButtons(),
-              SizedBox(height: getProportionateScreenHeight(20)),
-              StepProgressIndicator(
-                totalSteps: 6,
-                currentStep: indicateStep(),
-                size: 20,
-                padding: 0,
-                selectedColor: const Color.fromARGB(255, 147, 85, 222),
-                unselectedColor: Colors.grey.withOpacity(0.3),
-                roundedEdges: const Radius.circular(14),
-              ),
-              Text(indicateStepHint())
-            ]),
+      child: GestureDetector(
+        onTap: () {
+          FocusScopeNode currentFocus = FocusScope.of(context);
+
+          if (!currentFocus.hasPrimaryFocus) {
+            currentFocus.unfocus();
+          }
+        },
+        child: SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: getProportionateScreenWidth(20)),
+            child: SingleChildScrollView(
+              child: Column(children: [
+                Text(
+                  'AREA ${widget.areaId} - POINT ${widget.measures.length + 1}',
+                  style: TextStyle(
+                      fontSize: getProportionateScreenWidth(18),
+                      fontWeight: FontWeight.bold),
+                ),
+                pageHeader(),
+                SizedBox(height: getProportionateScreenHeight(20)),
+                ProgressHeader(stepTitle: headerTitle()),
+                if (formStage != 'init' && formStage != 'details')
+                  selectionRadioButtons()
+                else if (formStage == 'details')
+                  SizedBox(height: getProportionateScreenHeight(20))
+                else if (formStage == 'init')
+                  measuresOverview()
+                else
+                  SizedBox(height: getProportionateScreenHeight(200)),
+                if (formStage == 'species' || formStage == 'nextSpecies')
+                  selectionMenu()
+                else if (formStage != 'details')
+                  SizedBox(height: getProportionateScreenHeight(100)),
+                if (formStage == 'details') detailsBoard(),
+                if (formStage == 'details')
+                  SizedBox(height: getProportionateScreenHeight(55))
+                else if (formStage == 'init')
+                  SizedBox(height: getProportionateScreenHeight(0))
+                else
+                  SizedBox(height: getProportionateScreenHeight(100)),
+                if (formStage == 'init')
+                  DefaultButton(
+                    text: 'START',
+                    buttonColor: widget.measures.length < 100
+                        ? successContainer
+                        : lightColorScheme.outline,
+                    textColor: Colors.white,
+                    onPressedFunction: () {
+                      if (widget.measures.length < 100) {
+                        startTimer();
+                        setState(() {
+                          formStage = 'hits';
+                        });
+                      }
+                    },
+                  )
+                else
+                  controlButtons(),
+                SizedBox(height: getProportionateScreenHeight(20)),
+                StepProgressIndicator(
+                  totalSteps: 6,
+                  currentStep: indicateStep(),
+                  size: 20,
+                  padding: 0,
+                  selectedColor: const Color.fromARGB(255, 147, 85, 222),
+                  unselectedColor: Colors.grey.withOpacity(0.3),
+                  roundedEdges: const Radius.circular(14),
+                ),
+                Text(indicateStepHint())
+              ]),
+            ),
           ),
         ),
       ),
@@ -567,7 +580,8 @@ class _InitialBodyState extends State<InitialBody> {
     return Row(
       children: [
         Container(
-          width: getProportionateScreenWidth(formStage == 'details' ? 80 : 150),
+          width:
+              getProportionateScreenWidth(formStage == 'details' ? 100 : 150),
           child: Padding(
             padding: EdgeInsets.symmetric(
                 horizontal: getProportionateScreenWidth(5)),
@@ -604,20 +618,6 @@ class _InitialBodyState extends State<InitialBody> {
             ),
           ),
         ),
-        if (formStage == 'details' && widget.measures.length != 100)
-          Container(
-            width: getProportionateScreenWidth(95),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: getProportionateScreenWidth(2)),
-              child: DefaultButton(
-                text: 'SUBMIT',
-                buttonColor: Colors.blue,
-                textColor: Colors.white,
-                onPressedFunction: () {},
-              ),
-            ),
-          ),
         Expanded(
           child: Padding(
             padding: EdgeInsets.symmetric(

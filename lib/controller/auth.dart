@@ -29,13 +29,17 @@ signIn(String username, password) async {
         parsedTeamResponse = json.decode(teamResponse.body);
         await sharedPreferences.setString(
             'projectId', parsedTeamResponse['id_proyecto'].toString());
+      } else {
+        return 3;
       }
 
-      return true;
+      return 0;
     } else {
-      return false;
+      return 2;
     }
+  } else if (response.statusCode == 400) {
+    return 1;
   } else {
-    return false;
+    return 4;
   }
 }

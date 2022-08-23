@@ -25,7 +25,7 @@ class _LoginFormState extends State<LoginForm> {
   late String user;
   late String password;
   late bool isBussy = false;
-  late bool isLoggedIn = false;
+  late int isLoggedIn;
   late String errorMessage;
   final List<String> errors = [];
 
@@ -84,23 +84,33 @@ class _LoginFormState extends State<LoginForm> {
             text: 'Continue',
             onPressedFunction: () async {
               // When auth system is applied
-              if (_formKey.currentState!.validate()) {
-                // Go to complete profile page
-                _formKey.currentState!.save();
-                await signInRequest(user, password);
-                if (isLoggedIn) {
-                  Navigator.pushNamed(context, ScreenDrawer.routeName);
-                } else {
-                  addError(error: kAuthFailed);
-                }
-
-                // Go to main screen
-              }
+              await submitLogin(context);
             },
           )
         ],
       ),
     );
+  }
+
+  Future<void> submitLogin(BuildContext context) async {
+    if (_formKey.currentState!.validate()) {
+      // Go to complete profile page
+      _formKey.currentState!.save();
+      await signInRequest(user, password);
+      if (isLoggedIn == 0) {
+        Navigator.pushNamed(context, ScreenDrawer.routeName);
+      } else if (isLoggedIn == 1) {
+        addError(error: kAuthFailed);
+      } else if (isLoggedIn == 2) {
+        addError(error: 'ERROR: Invalid access token');
+      } else if (isLoggedIn == 3) {
+        addError(error: 'ERROR: failed retrieving project ID');
+      } else if (isLoggedIn == 4) {
+        addError(error: 'ERROR: No response from server');
+      }
+
+      // Go to main screen
+    }
   }
 
   TextFormField buildUserField() {
