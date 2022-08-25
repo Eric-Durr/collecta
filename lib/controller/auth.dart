@@ -10,7 +10,7 @@ signIn(String username, password) async {
 
   Map userData = {'username': username, 'password': password};
 
-  var jsonResponse = null;
+  var jsonResponse;
 
   var response = await http
       .post(Uri.parse('$API_SERVER:$API_PORT/api/auth/signin'), body: userData);
@@ -21,12 +21,12 @@ signIn(String username, password) async {
       await sharedPreferences.setString('token', jsonResponse['accessToken']);
       await sharedPreferences.setString('username', jsonResponse['username']);
       await sharedPreferences.setString(
-          'teamId', jsonResponse['team_id'].toString());
-      var teamResponse = await http.get(Uri.parse(
-          '$API_SERVER:$API_PORT/api/teams/${jsonResponse['team_id']}'));
-      var parsedTeamResponse = null;
+          'teamId', jsonResponse['id'].toString());
+
+      var teamResponse = await http.get(
+          Uri.parse('$API_SERVER:$API_PORT/api/teams/${jsonResponse['id']}'));
       if (teamResponse.statusCode == 200) {
-        parsedTeamResponse = json.decode(teamResponse.body);
+        var parsedTeamResponse = json.decode(teamResponse.body);
         await sharedPreferences.setString(
             'projectId', parsedTeamResponse['id_proyecto'].toString());
       } else {

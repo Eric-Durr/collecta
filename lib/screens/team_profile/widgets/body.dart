@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:collecta/controller/team.dart';
 import 'package:collecta/screens/splash/splash_screen.dart';
 import 'package:collecta/screens/team_profile/widgets/user_banner.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,7 @@ class _BodyState extends State<Body> {
   late bool isBussy = false;
   late bool isLoggedIn = true;
   late String errorMessage;
+  late String membersString;
   final List<String> errors = [];
   late SharedPreferences sharedPreferences;
 
@@ -67,6 +69,13 @@ class _BodyState extends State<Body> {
               Text(widget.hasConnection ? 'online' : 'offline'),
               userBanner(widget.username),
               SizedBox(height: SizeConfig.screenHeight * 0.04),
+              Text(
+                'MEMBERS:',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: getProportionateScreenWidth(18)),
+              ),
+              if (!isBussy) Text(membersString),
               SizedBox(height: SizeConfig.screenHeight * 0.04),
               DefaultButton(
                   text: 'Log out',
@@ -96,6 +105,9 @@ class _BodyState extends State<Body> {
       isBussy = true;
     });
     sharedPreferences = await SharedPreferences.getInstance();
+    membersString = await getTeamMembers(
+        int.parse(await sharedPreferences.getString('teamId') ?? '-1'));
+
     setState(() {
       isBussy = false;
     });

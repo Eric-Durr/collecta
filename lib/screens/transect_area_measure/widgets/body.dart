@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:collecta/controller/area.dart';
+import 'package:collecta/controller/transect.dart';
 import 'package:collecta/screens/transect_point_measure/widgets/transect_form_args.screen.dart';
 import 'package:collecta/models/measure_area.dart';
 import 'package:collecta/models/transect_point.dart';
@@ -77,10 +78,14 @@ class _BodyState extends State<Body> {
       widget.zoneAreas,
     ).then((value) => closestArea = (value != null) ? value : null);
 
-    if (widget.isOnline) {
-      // onlineDB if user is connected
-    }
     await initLocalDB();
+
+    if (widget.isOnline) {
+      SharedPreferences sharedPreferences =
+          await SharedPreferences.getInstance();
+      await getTeamTransectMeasures(sharedPreferences.getString('areaId') ?? '',
+          sharedPreferences.getString('teamId') ?? '');
+    }
 
     setState(() {
       isBussy = false;
@@ -98,10 +103,11 @@ class _BodyState extends State<Body> {
         measures = await TransectPointDatabase.instance.readAll();
       }
     }
-
+    print(measures.last.created.toIso8601String().substring(0, 10));
+    print(DateTime.now().toIso8601String().substring(0, 10));
     if (measures.isNotEmpty) {
-      if (measures.last.created.day != DateTime.now().day &&
-          measures.last.created.month != DateTime.now().month) {
+      if (measures.last.created.toIso8601String().substring(0, 10) !=
+          DateTime.now().toIso8601String().substring(0, 10)) {
         TransectPointDatabase.instance.purge();
         measures = [];
       }

@@ -18,7 +18,7 @@ Row userBanner(String? username) {
               radius: getProportionateScreenWidth(40),
               backgroundColor: lightColorScheme.secondaryContainer,
               child: Text(
-                username.toString().substring(0, 1).toUpperCase(),
+                username.toString().split('_')[1],
                 style: TextStyle(
                     fontSize: getProportionateScreenWidth(22),
                     fontWeight: FontWeight.w600,
@@ -32,7 +32,7 @@ Row userBanner(String? username) {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            username.toString(),
+            username.toString().split('_').join(' '),
             style: TextStyle(
                 fontSize: getProportionateScreenWidth(18),
                 fontWeight: FontWeight.bold),
