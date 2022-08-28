@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:collecta/constants.dart';
 import 'package:collecta/controller/area.dart';
 import 'package:collecta/controller/species.dart';
-import 'package:collecta/helpers/utm_zone_convert.dart';
 import 'package:collecta/models/measure_area.dart';
 import 'package:collecta/screens/insights/inisghts_screen.dart';
-import 'package:collecta/screens/insights/widgets/map.dart';
 import 'package:collecta/screens/splash/splash_screen.dart';
 import 'package:collecta/screens/team_profile/team_profile.dart';
 import 'package:collecta/screens/transect_area_measure/transect_area_measure.dart';
@@ -15,7 +12,6 @@ import 'package:collecta/size_config.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -47,6 +43,7 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
   final Geolocator geolocator = Geolocator();
   late Position _currentPosition;
   late List<MeasureArea> areas = [];
+  final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
 
   @override
   void initState() {
@@ -233,37 +230,58 @@ class _ScreenDrawerState extends State<ScreenDrawer> {
     }
   }
 
+  Future<bool> _handlePermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await _geolocatorPlatform.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled don't continue
+      // accessing the position and request users of the
+      // App to enable the location services
+
+      return false;
+    }
+
+    permission = await _geolocatorPlatform.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await _geolocatorPlatform.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Permissions are denied, next time you could try
+        // requesting permissions again (this is also where
+        // Android's shouldShowRequestPermissionRationale
+        // returned true. According to Android guidelines
+        // your App should show an explanatory UI now.
+
+        return false;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, handle appropriately.
+
+      return false;
+    }
+
+    // When we reach here, permissions are granted and we can
+    // continue accessing the position of the device.
+    return true;
+  }
+
   determinePosition() async {
     LocationPermission permission;
-    permission = await Geolocator.requestPermission();
-    if (permission != LocationPermission.denied) {
-      await Geolocator.getCurrentPosition(
-              desiredAccuracy: LocationAccuracy.best,
-              forceAndroidLocationManager: true)
-          .then((Position position) {
-        setState(() {
-          _currentPosition = position;
-        });
-      }).catchError((e) {
-        setState(() {
-          locationFail = true;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          dismissDirection: DismissDirection.down,
-          duration: const Duration(seconds: 20),
-          backgroundColor: lightColorScheme.errorContainer,
-          content: Text(
-            e.toString(),
-            style: TextStyle(color: lightColorScheme.onErrorContainer),
-          ),
-        ));
-      });
-    } else {
+    final hasPermission = await _handlePermission();
+    if (!hasPermission) {
+      return;
+    }
+    final position = await _geolocatorPlatform.getCurrentPosition();
+    setState(() {
       setState(() {
         locationFail = true;
       });
-    }
+      _currentPosition = position;
+    });
   }
 
   getAndParseAreas() async {

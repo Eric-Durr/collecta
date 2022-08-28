@@ -84,33 +84,57 @@ Future<int> addArea(
 ) async {
   MeasureArea newArea;
   int returnValue = 400;
-  await getClosestArea(lat, lon, zoneAreas).then((area) async {
-    print('i come frist');
+  Map areaJSON = {};
 
-    Map areaJSON = {};
-
-    if (area != null) {
-      areaJSON = {
-        "id_area": id.toString(),
-        "longitude": lon.toString(),
-        "latitude": lat.toString(),
-        "project_id": projectId,
-        "annotations": annotations ?? '',
-        "uTMZone": area.uTMZone,
-        "geographicSystem":
-            "+proj=utm +zone=${area.uTMZone.replaceAll(RegExp(r'[^0-9]'), '')} +datum=WGS84 +units=m +no_defs"
-      };
-    }
+  if (zoneAreas.isEmpty) {
+    areaJSON = {
+      "id_area": id.toString(),
+      "longitude": lon.toString(),
+      "latitude": lat.toString(),
+      "project_id": projectId,
+      "annotations": annotations ?? '',
+      "uTMZone": lonLatToUTMZone(lon, lat).toString(),
+      "geographicSystem":
+          "+proj=utm +zone=${lonLatToUTMZone(lon, lat).toString().replaceAll(RegExp(r'[^0-9]'), '')} +datum=WGS84 +units=m +no_defs"
+    };
 
     var response = await http
         .post(Uri.parse('$API_SERVER:$API_PORT/api/areas/'), body: areaJSON);
+    print(areaJSON.toString());
 
     if (response.statusCode == 201) {
       var jsonResponse = await json.decode(response.body);
       MeasureArea newArea = MeasureArea.fromJSON(jsonResponse['area']);
       returnValue = 201;
     }
-  });
+  } else {
+    await getClosestArea(lat, lon, zoneAreas).then((area) async {
+      print('i come frist');
+
+      if (area != null) {
+        areaJSON = {
+          "id_area": id.toString(),
+          "longitude": lon.toString(),
+          "latitude": lat.toString(),
+          "project_id": projectId,
+          "annotations": annotations ?? '',
+          "uTMZone": area.uTMZone,
+          "geographicSystem":
+              "+proj=utm +zone=${area.uTMZone.replaceAll(RegExp(r'[^0-9]'), '')} +datum=WGS84 +units=m +no_defs"
+        };
+      }
+
+      var response = await http
+          .post(Uri.parse('$API_SERVER:$API_PORT/api/areas/'), body: areaJSON);
+
+      if (response.statusCode == 201) {
+        var jsonResponse = await json.decode(response.body);
+        MeasureArea newArea = MeasureArea.fromJSON(jsonResponse['area']);
+        returnValue = 201;
+      }
+    });
+  }
+
   print('iam the last');
   return returnValue;
 }

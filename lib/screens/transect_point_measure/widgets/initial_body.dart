@@ -158,12 +158,9 @@ class _InitialBodyState extends State<InitialBody> {
   Container measuresOverview() {
     return Container(
       padding: EdgeInsets.all(0),
-      margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
-      decoration:
-          BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(15))),
-      height: getProportionateScreenHeight(320),
+      height: SizeConfig.screenHeight * 0.4,
       child: Column(
-        mainAxisSize: MainAxisSize.max,
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(

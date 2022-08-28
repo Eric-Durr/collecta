@@ -81,10 +81,10 @@ class _BodyState extends State<Body> {
     await initLocalDB();
 
     if (widget.isOnline) {
-      SharedPreferences sharedPreferences =
-          await SharedPreferences.getInstance();
-      await getTeamTransectMeasures(sharedPreferences.getString('areaId') ?? '',
-          sharedPreferences.getString('teamId') ?? '');
+      // SharedPreferences sharedPreferences =
+      //     await SharedPreferences.getInstance();
+      // await getTeamTransectMeasures(sharedPreferences.getString('areaId') ?? '',
+      //     sharedPreferences.getString('teamId') ?? '');
     }
 
     setState(() {
@@ -96,21 +96,26 @@ class _BodyState extends State<Body> {
     if (closestArea == null) {
       measures = [];
     } else {
-      if (onlyThisArea) {
-        measures = await TransectPointDatabase.instance
-            .readByArea(closestArea?.id ?? -1);
-      } else {
-        measures = await TransectPointDatabase.instance.readAll();
+      await readDBMeasures();
+      if (measures.isNotEmpty) {
+        for (TransectPoint measure in measures) {
+          if (measure.created.toIso8601String().substring(0, 10) !=
+              DateTime.now().toIso8601String().substring(0, 10)) {
+            await TransectPointDatabase.instance.delete(measure.id ?? -1);
+          }
+        }
       }
+
+      await readDBMeasures();
     }
-    print(measures.last.created.toIso8601String().substring(0, 10));
-    print(DateTime.now().toIso8601String().substring(0, 10));
-    if (measures.isNotEmpty) {
-      if (measures.last.created.toIso8601String().substring(0, 10) !=
-          DateTime.now().toIso8601String().substring(0, 10)) {
-        TransectPointDatabase.instance.purge();
-        measures = [];
-      }
+  }
+
+  Future<void> readDBMeasures() async {
+    if (onlyThisArea) {
+      measures = await TransectPointDatabase.instance
+          .readByArea(closestArea?.id ?? -1);
+    } else {
+      measures = await TransectPointDatabase.instance.readAll();
     }
   }
 

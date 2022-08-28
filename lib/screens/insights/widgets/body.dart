@@ -1,5 +1,6 @@
 import 'package:collecta/constants.dart';
 import 'package:collecta/models/measure_area.dart';
+import 'package:collecta/screens/splash/widgets/teams_rank_list.dart';
 import 'package:collecta/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -25,17 +26,8 @@ class AnimatedMapControllerPage extends StatefulWidget {
 
 class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     with TickerProviderStateMixin {
-  // Note the addition of the TickerProviderStateMixin here. If you are getting an error like
-  // 'The class 'TickerProviderStateMixin' can't be used as a mixin because it extends a class other than Object.'
-  // in your IDE, you can probably fix it by adding an analysis_options.yaml file to your project
-  // with the following content:
-  //  analyzer:
-  //    language:
-  //      enableSuperMixins: true
-  // See https://github.com/flutter/flutter/issues/14317#issuecomment-361085869
-  // This project didn't require that change, so YMMV.
-
   late MapController mapController;
+  bool isBussy = false;
 
   @override
   void initState() {
@@ -127,37 +119,57 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     return SafeArea(
       child: Column(
         children: [
-          SizedBox(
-            height: SizeConfig.screenHeight * 0.04,
-          ),
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: FlutterMap(
-                mapController: mapController,
-                options: MapOptions(
-                  center: LatLng(
-                    widget.location.latitude,
-                    widget.location.longitude,
-                  ),
-                  zoom: 17.5,
-                  maxZoom: 17.5,
+          SizedBox(height: SizeConfig.screenHeight * 0.001),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 5),
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: <Widget>[
+                Text(
+                  'TEAM NEAR AREAS',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: getProportionateScreenWidth(14),
+                      fontWeight: FontWeight.bold),
                 ),
-                layers: [
-                  TileLayerOptions(
-                    urlTemplate:
-                        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    subdomains: ['a', 'b', 'c'],
-                    userAgentPackageName: 'dev.fleaflet.flutter_map.example',
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.fromLTRB(getProportionateScreenWidth(10),
+                        0, getProportionateScreenWidth(10), 0),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(width: 3, color: Colors.black),
+                      ),
+                    ),
                   ),
-                  MarkerLayerOptions(markers: markers)
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          SizedBox(
-            height: SizeConfig.screenHeight * 0.3,
-          )
+          SizedBox(height: SizeConfig.screenHeight * 0.005),
+          Container(
+            height: SizeConfig.screenHeight * 0.655,
+            child: FlutterMap(
+              mapController: mapController,
+              options: MapOptions(
+                center: LatLng(
+                  widget.location.latitude,
+                  widget.location.longitude,
+                ),
+                zoom: 17.5,
+                maxZoom: 17.5,
+              ),
+              layers: [
+                TileLayerOptions(
+                  urlTemplate:
+                      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  subdomains: ['a', 'b', 'c'],
+                  userAgentPackageName: 'dev.fleaflet.flutter_map.example',
+                ),
+                MarkerLayerOptions(markers: markers)
+              ],
+            ),
+          ),
         ],
       ),
     );

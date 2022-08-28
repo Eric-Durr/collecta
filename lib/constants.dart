@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'size_config.dart';
 
-import 'package:flutter/material.dart';
-
 const lightColorScheme = ColorScheme(
   brightness: Brightness.light,
   primary: Color(0xFF6A5583),

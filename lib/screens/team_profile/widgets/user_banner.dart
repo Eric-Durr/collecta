@@ -17,12 +17,15 @@ Row userBanner(String? username) {
             child: CircleAvatar(
               radius: getProportionateScreenWidth(40),
               backgroundColor: lightColorScheme.secondaryContainer,
-              child: Text(
-                username.toString().split('_')[1],
-                style: TextStyle(
-                    fontSize: getProportionateScreenWidth(22),
-                    fontWeight: FontWeight.w600,
-                    color: lightColorScheme.onSecondaryContainer),
+              child: Container(
+                child: Text(
+                  username.toString().split('_')[0].substring(0, 2) +
+                      username.toString().split('_')[1],
+                  style: TextStyle(
+                      fontSize: getProportionateScreenWidth(26),
+                      fontWeight: FontWeight.w900,
+                      color: lightColorScheme.onSecondaryContainer),
+                ),
               ),
             ),
           ),
