@@ -24,6 +24,7 @@ class TransectPointDatabase {
 
   Future _createDB(Database db, int version) async {
     const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
+    const speciesType = 'TEXT NOT NULL PRIMARY KEY';
     const textType = 'TEXT NOT NULL';
     const intType = 'INTEGER NOT NULL';
     const boolType = 'BOOLEAN NOT NULL';
@@ -31,7 +32,7 @@ class TransectPointDatabase {
     await db.execute('''
     CREATE TABLE $tableTransectPoint (
       ${TransectPointFields.id} $idType,
-      ${TransectPointFields.species} $textType,
+      ${TransectPointFields.species} $speciesType,
       ${TransectPointFields.soil} $boolType,
       ${TransectPointFields.mulch} $boolType,
       ${TransectPointFields.stone} $boolType,

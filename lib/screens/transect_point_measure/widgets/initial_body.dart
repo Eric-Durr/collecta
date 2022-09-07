@@ -36,6 +36,8 @@ class _InitialBodyState extends State<InitialBody> {
   String userName = '';
   TransectPointTypes measureType = TransectPointTypes.species;
 
+  List<Map<String, String>> speciesList = [];
+
   int dummy = 0;
 
   bool enableHitsField = true;
@@ -47,6 +49,10 @@ class _InitialBodyState extends State<InitialBody> {
     ..text = '0';
   final TextEditingController _speciesNameController = TextEditingController()
     ..text = '';
+  final TextEditingController _listHitsController = TextEditingController()
+    ..text = '0';
+  final TextEditingController _listSpeciesNameController =
+      TextEditingController()..text = '';
   final TextEditingController _transectAnnotationsController =
       TextEditingController()..text = '';
 
@@ -105,8 +111,13 @@ class _InitialBodyState extends State<InitialBody> {
                   measuresOverview()
                 else
                   SizedBox(height: getProportionateScreenHeight(200)),
-                if (formStage == 'species' || formStage == 'nextSpecies')
+                if ((formStage == 'species' || formStage == 'nextSpecies') &&
+                    (measureType != TransectPointTypes.species))
                   selectionMenu()
+                else if ((measureType == TransectPointTypes.species) &&
+                    formStage != 'init' &&
+                    formStage != 'details')
+                  speciesSelectionMenu()
                 else if (formStage != 'details')
                   SizedBox(height: getProportionateScreenHeight(100)),
                 if (formStage == 'details') detailsBoard(),
@@ -397,15 +408,166 @@ class _InitialBodyState extends State<InitialBody> {
     );
   }
 
+  Column speciesSelectionMenu() {
+    return Column(
+      children: [
+        SizedBox(height: getProportionateScreenHeight(18)),
+        SizedBox(
+          height: SizeConfig.screenHeight * 0.13 * (speciesList.length + 1),
+          child: Column(
+            children: [
+              SizedBox(
+                height:
+                    SizeConfig.screenHeight * 0.12 * (speciesList.length + 1),
+                child: ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: speciesList.length + 1,
+                  itemBuilder: (context, index) {
+                    // Point measure card
+                    if (index == speciesList.length) {
+                      return Card(
+                        elevation: 0,
+                        margin: EdgeInsets.fromLTRB(
+                          0,
+                          SizeConfig.screenHeight * 0.02,
+                          0,
+                          SizeConfig.screenHeight * 0.02,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            SizedBox(
+                              width: SizeConfig.screenWidth * 0.3,
+                              child: buildSpeciesHitsField(),
+                            ),
+                            SizedBox(
+                              width: SizeConfig.screenWidth * 0.5,
+                              child: TypeAheadField<String?>(
+                                hideSuggestionsOnKeyboardHide: false,
+                                minCharsForSuggestions: 2,
+                                suggestionsCallback:
+                                    getTransectSpeciesNamesLoaded,
+                                itemBuilder:
+                                    (context, String? speciesSugestion) {
+                                  final species = speciesSugestion;
+                                  return ListTile(title: Text(species ?? ''));
+                                },
+                                textFieldConfiguration: TextFieldConfiguration(
+                                    decoration: const InputDecoration(
+                                      labelText: 'Species',
+                                    ),
+                                    controller: _listSpeciesNameController,
+                                    enabled: enableSpeciesField),
+                                noItemsFoundBuilder: (context) => Center(
+                                  child: Container(
+                                      padding: EdgeInsets.all(10),
+                                      width: getProportionateScreenWidth(200),
+                                      height:
+                                          getProportionateScreenHeight(2000),
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                              '${_speciesNameController.text} not found in database'),
+                                          DefaultButton(
+                                            text: 'add to list',
+                                            onPressedFunction: () {},
+                                          ),
+                                        ],
+                                      )),
+                                ),
+                                onSuggestionSelected: (String? suggestion) {
+                                  _listSpeciesNameController.text =
+                                      suggestion ?? '';
+                                  if (_listSpeciesNameController.text != '') {
+                                    formStage = 'nextSpecies';
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      return Card(
+                        elevation: 0,
+                        margin: EdgeInsets.fromLTRB(
+                          0,
+                          SizeConfig.screenHeight * 0.02,
+                          0,
+                          SizeConfig.screenHeight * 0.02,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            SizedBox(
+                                width: SizeConfig.screenWidth * 0.3,
+                                child: TextField(
+                                    readOnly: true,
+                                    decoration: InputDecoration(
+                                        hintText: speciesList[index]
+                                            .values
+                                            .first
+                                            .toString()))),
+                            SizedBox(
+                                width: SizeConfig.screenWidth * 0.5,
+                                child: TextField(
+                                    readOnly: true,
+                                    decoration: InputDecoration(
+                                        hintText: speciesList[index]
+                                            .keys
+                                            .first
+                                            .toString()))),
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: () {
+            if (_listHitsController.text == '' ||
+                _listHitsController.text == '0' ||
+                _listSpeciesNameController.text == '') {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                dismissDirection: DismissDirection.down,
+                duration: const Duration(seconds: 5),
+                backgroundColor: lightColorScheme.errorContainer,
+                content: Text(
+                  'Hits and species field must be completed',
+                  style: TextStyle(color: lightColorScheme.onErrorContainer),
+                ),
+              ));
+            } else {
+              setState(() {
+                speciesList.add({
+                  _listSpeciesNameController.text: _listHitsController.text
+                });
+                _listSpeciesNameController.text = '';
+                _listHitsController.text = '0';
+              });
+            }
+          },
+          icon: Icon(Icons.add_box),
+          iconSize: getProportionateScreenWidth(46),
+        ),
+      ],
+    );
+  }
+
   Column selectionRadioButtons() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         SizedBox(height: getProportionateScreenHeight(20)),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [Expanded(child: buildHitsField())],
-        ),
+        if (measureType != TransectPointTypes.species)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [Expanded(child: buildHitsField())],
+          ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -552,8 +714,21 @@ class _InitialBodyState extends State<InitialBody> {
         controller: _hitsController,
         onChanged: (value) {
           _hitsController.text != '' ? int.parse(_hitsController.text) : 0;
-
-          if (value == '0' || value == '') {
+          if (int.parse(value) > 6 || int.parse(value) < 1) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              dismissDirection: DismissDirection.down,
+              duration: const Duration(seconds: 5),
+              backgroundColor: lightColorScheme.errorContainer,
+              content: Text(
+                'Hits must be between 1 and 6',
+                style: TextStyle(color: lightColorScheme.onErrorContainer),
+              ),
+            ));
+            setState(() {
+              _listHitsController.text = '0';
+            });
+          }
+          if (value == '0' || value == '' || int.parse(value) > 6) {
             setState(() {
               formStage = 'hits';
             });
@@ -570,6 +745,32 @@ class _InitialBodyState extends State<InitialBody> {
         decoration: const InputDecoration(
           labelText: 'Hits',
           helperText: 'Enter number of hits',
+        ));
+  }
+
+  TextFormField buildSpeciesHitsField() {
+    return TextFormField(
+        keyboardType: TextInputType.text,
+        enabled: enableHitsField,
+        controller: _listHitsController,
+        onChanged: (value) {
+          _listHitsController.text != ''
+              ? int.parse(_listHitsController.text)
+              : 0;
+          if (int.parse(value) > 6 || int.parse(value) < 1) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              dismissDirection: DismissDirection.down,
+              duration: const Duration(seconds: 5),
+              backgroundColor: lightColorScheme.errorContainer,
+              content: Text(
+                'Hits must be between 1 and 6',
+                style: TextStyle(color: lightColorScheme.onErrorContainer),
+              ),
+            ));
+          }
+        },
+        decoration: const InputDecoration(
+          labelText: 'Hits',
         ));
   }
 
