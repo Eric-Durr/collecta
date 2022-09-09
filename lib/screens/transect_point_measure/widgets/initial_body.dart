@@ -478,9 +478,6 @@ class _InitialBodyState extends State<InitialBody> {
                                 onSuggestionSelected: (String? suggestion) {
                                   _listSpeciesNameController.text =
                                       suggestion ?? '';
-                                  if (_listSpeciesNameController.text != '') {
-                                    formStage = 'nextSpecies';
-                                  }
                                 },
                               ),
                             ),
@@ -529,26 +526,40 @@ class _InitialBodyState extends State<InitialBody> {
         ),
         IconButton(
           onPressed: () {
-            if (_listHitsController.text == '' ||
-                _listHitsController.text == '0' ||
-                _listSpeciesNameController.text == '') {
+            if ((int.parse(_listHitsController.text) < 1) ||
+                (int.parse(_listHitsController.text) > 6)) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 dismissDirection: DismissDirection.down,
                 duration: const Duration(seconds: 5),
                 backgroundColor: lightColorScheme.errorContainer,
                 content: Text(
-                  'Hits and species field must be completed',
+                  'Hits must be between 1 and 6',
                   style: TextStyle(color: lightColorScheme.onErrorContainer),
                 ),
               ));
             } else {
-              setState(() {
-                speciesList.add({
-                  _listSpeciesNameController.text: _listHitsController.text
+              if (_listHitsController.text == '' ||
+                  _listHitsController.text == '0' ||
+                  _listSpeciesNameController.text == '') {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  dismissDirection: DismissDirection.down,
+                  duration: const Duration(seconds: 5),
+                  backgroundColor: lightColorScheme.errorContainer,
+                  content: Text(
+                    'Hits and species fields must be completed',
+                    style: TextStyle(color: lightColorScheme.onErrorContainer),
+                  ),
+                ));
+              } else {
+                setState(() {
+                  speciesList.add({
+                    _listSpeciesNameController.text: _listHitsController.text
+                  });
+                  formStage = 'nextSpecies';
+                  _listSpeciesNameController.text = '';
+                  _listHitsController.text = '0';
                 });
-                _listSpeciesNameController.text = '';
-                _listHitsController.text = '0';
-              });
+              }
             }
           },
           icon: Icon(Icons.add_box),
@@ -724,9 +735,6 @@ class _InitialBodyState extends State<InitialBody> {
                 style: TextStyle(color: lightColorScheme.onErrorContainer),
               ),
             ));
-            setState(() {
-              _listHitsController.text = '0';
-            });
           }
           if (value == '0' || value == '' || int.parse(value) > 6) {
             setState(() {
@@ -757,17 +765,6 @@ class _InitialBodyState extends State<InitialBody> {
           _listHitsController.text != ''
               ? int.parse(_listHitsController.text)
               : 0;
-          if (int.parse(value) > 6 || int.parse(value) < 1) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              dismissDirection: DismissDirection.down,
-              duration: const Duration(seconds: 5),
-              backgroundColor: lightColorScheme.errorContainer,
-              content: Text(
-                'Hits must be between 1 and 6',
-                style: TextStyle(color: lightColorScheme.onErrorContainer),
-              ),
-            ));
-          }
         },
         decoration: const InputDecoration(
           labelText: 'Hits',
@@ -792,9 +789,14 @@ class _InitialBodyState extends State<InitialBody> {
                   if (formStage == 'hits' || formStage == 'type') {
                     formStage = 'init';
                     stopTimer();
-                  } else if (formStage == 'species') {
-                    _speciesNameController.text = '';
-                    formStage = 'hits';
+                  } else if (formStage == 'nextSpecies' ||
+                      formStage == 'species') {
+                    if (speciesList.isNotEmpty) {
+                      speciesList.remove(speciesList.last);
+                      formStage = 'species';
+                    } else {
+                      formStage = 'init';
+                    }
                   } else if (formStage == 'details') {
                     formStage = 'nextSpecies';
                     if (measureType != TransectPointTypes.species) {
